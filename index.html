@@ -6,6 +6,36 @@
     <title>범초냉장고</title>
     <!-- html5-qrcode Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // TODO: 파이어베이스 콘솔에서 내 프로젝트 설정(SDK 설정) 정보를 복사하여 아래에 붙여넣으세요.
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const inventoryCol = collection(db, "inventory");
+
+        // 앱 로직 시작
+        window.db = db;
+        window.inventoryCol = inventoryCol;
+        window.firestoreTools = { addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, orderBy };
+        
+        // 초기화 함수 실행
+        initApp();
+    </script>
+
     <style>
         /* CSS Variables */
         :root {
@@ -57,9 +87,12 @@
         .recipe-card {
             min-width: 200px; background: white; padding: 15px; border-radius: 15px;
             box-shadow: var(--shadow); border-left: 4px solid var(--secondary-color);
+            cursor: pointer; transition: transform 0.1s;
         }
+        .recipe-card:active { transform: scale(0.97); }
         .recipe-card h4 { font-size: 0.9rem; margin-bottom: 5px; color: var(--secondary-color); }
-        .recipe-card p { font-size: 0.75rem; color: var(--text-muted); }
+        .recipe-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+        .recipe-card .youtube-tag { font-size: 0.7rem; color: #EF4444; font-weight: bold; }
 
         /* Controls */
         .list-controls { margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -151,9 +184,7 @@
     <!-- Recipe Recommendation Section -->
     <section id="recipe-section">
         <div class="recipe-title">👨‍🍳 남은 재료 활용 레시피</div>
-        <div id="recipe-list" class="recipe-container">
-            <!-- Recipes injected here -->
-        </div>
+        <div id="recipe-list" class="recipe-container"></div>
     </section>
 
     <div class="list-controls">
@@ -220,7 +251,7 @@
 </div>
 
 <script>
-    let inventory = JSON.parse(localStorage.getItem('fridgeInventory')) || [];
+    let inventory = []; // Now managed by Firebase
     let currentFilter = 'all';
     let searchQuery = '';
     let editingId = null;
@@ -249,15 +280,20 @@
         ]
     };
 
-    function init() {
-        renderInventory();
-        updateSummary();
-        document.getElementById('expiry-date').valueAsDate = new Date();
-    }
+    // Firebase Initialization logic is in the <script type="module"> above.
+    // We use a global helper function to link Firebase logic with UI.
+    function initApp() {
+        const { query, orderBy, onSnapshot } = window.firestoreTools;
+        const q = query(window.inventoryCol, orderBy("expiryDate", "asc"));
 
-    function save() {
-        localStorage.setItem('fridgeInventory', JSON.stringify(inventory));
-        updateSummary();
+        // Real-time listener
+        onSnapshot(q, (snapshot) => {
+            inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderInventory();
+            updateSummary();
+        });
+
+        document.getElementById('expiry-date').valueAsDate = new Date();
     }
 
     function calculateDDay(dateStr) {
@@ -278,25 +314,20 @@
             recipeSection.style.display = 'none';
             return;
         }
-        
         recipeSection.style.display = 'block';
         recipeList.innerHTML = '';
-        
         const suggestedCategories = [...new Set(nearExpiryItems.map(i => i.category))];
         let recipesToShow = [];
-        
         suggestedCategories.forEach(cat => {
             if (RECIPE_DATA[cat]) recipesToShow = [...recipesToShow, ...RECIPE_DATA[cat]];
         });
-
-        if (recipesToShow.length === 0) {
-            recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료로 맛있는 요리를 만들어보세요!' });
-        }
-
+        if (recipesToShow.length === 0) recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료로 맛있는 요리를 만들어보세요!' });
+        
         recipesToShow.forEach(r => {
             const div = document.createElement('div');
             div.className = 'recipe-card';
-            div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p>`;
+            div.onclick = () => window.open(`https://www.youtube.com/results?search_query=${r.title}+레시피`, '_blank');
+            div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p><span class="youtube-tag">▶ 유튜브에서 보기</span>`;
             recipeList.appendChild(div);
         });
     }
@@ -307,7 +338,7 @@
             const fMatch = currentFilter === 'all' || i.storageType === currentFilter;
             const sMatch = i.name.toLowerCase().includes(searchQuery.toLowerCase());
             return fMatch && sMatch;
-        }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+        });
 
         if (!filtered.length) {
             inventoryList.innerHTML = '<div class="empty-state">검색 결과가 없거나 냉장고가 비어있어요.</div>';
@@ -338,7 +369,7 @@
                         </div>
                         <div class="form-group"><label>유통기한</label><input type="date" id="edit-date-${item.id}" value="${item.expiryDate}"></div>
                         <div class="card-actions">
-                            <button class="action-btn save-btn" onclick="saveEdit(${item.id})">저장</button>
+                            <button class="action-btn save-btn" onclick="saveEdit('${item.id}')">저장</button>
                             <button class="action-btn cancel-btn" onclick="cancelEdit()">취소</button>
                         </div>
                     </div>
@@ -352,13 +383,13 @@
                         <div><span>유통기한:</span> <strong style="${dDay<=3?'color:var(--danger-color)':''}">${item.expiryDate} (${dDayText})</strong></div>
                     </div>
                     <div class="quantity-control">
-                        <button class="q-btn" onclick="updateQty(${item.id},-1)">-</button>
+                        <button class="q-btn" onclick="updateQty('${item.id}',-1)">-</button>
                         <span><strong>${item.quantity}</strong></span>
-                        <button class="q-btn" onclick="updateQty(${item.id},1)">+</button>
+                        <button class="q-btn" onclick="updateQty('${item.id}',1)">+</button>
                     </div>
                     <div class="card-actions">
-                        <button class="action-btn edit-btn" onclick="startEdit(${item.id})">수정</button>
-                        <button class="action-btn delete-btn" onclick="deleteItem(${item.id})">삭제</button>
+                        <button class="action-btn edit-btn" onclick="startEdit('${item.id}')">수정</button>
+                        <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')">삭제</button>
                     </div>
                 `;
             }
@@ -366,41 +397,57 @@
         });
     }
 
-    document.getElementById('open-reg-modal').onclick = () => { regModal.style.display = 'flex'; };
-    document.getElementById('close-reg-modal').onclick = () => { regModal.style.display = 'none'; };
-    window.onclick = (e) => { if(e.target == regModal) regModal.style.display = 'none'; };
-
-    document.getElementById('add-food-form').onsubmit = (e) => {
+    // CRUD with Firebase
+    document.getElementById('add-food-form').onsubmit = async (e) => {
         e.preventDefault();
-        inventory.push({
-            id: Date.now(),
+        const { addDoc } = window.firestoreTools;
+        const newItem = {
             name: document.getElementById('food-name').value,
             category: document.getElementById('food-category').value,
             quantity: parseInt(document.getElementById('food-quantity').value),
             storageType: document.getElementById('storage-type').value,
-            expiryDate: document.getElementById('expiry-date').value
-        });
+            expiryDate: document.getElementById('expiry-date').value,
+            createdAt: Date.now()
+        };
+        await addDoc(window.inventoryCol, newItem);
         document.getElementById('add-food-form').reset();
         document.getElementById('expiry-date').valueAsDate = new Date();
-        regModal.style.display = 'none'; save(); renderInventory();
+        regModal.style.display = 'none';
     };
 
     function startEdit(id) { editingId = id; renderInventory(); }
     function cancelEdit() { editingId = null; renderInventory(); }
-    function saveEdit(id) {
-        const item = inventory.find(i => i.id === id);
-        item.name = document.getElementById(`edit-name-${id}`).value;
-        item.category = document.getElementById(`edit-cat-${id}`).value;
-        item.storageType = document.getElementById(`edit-stor-${id}`).value;
-        item.expiryDate = document.getElementById(`edit-date-${id}`).value;
-        editingId = null; save(); renderInventory();
-    }
-    function deleteItem(id) { if(confirm('냉장고에서 뺄까요?')) { inventory = inventory.filter(i => i.id !== id); save(); renderInventory(); } }
-    function updateQty(id, chg) {
-        const i = inventory.find(x => x.id === id); i.quantity += chg;
-        if(i.quantity <= 0) deleteItem(id); else { save(); renderInventory(); }
+    
+    async function saveEdit(id) {
+        const { updateDoc, doc } = window.firestoreTools;
+        const itemRef = doc(window.db, "inventory", id);
+        await updateDoc(itemRef, {
+            name: document.getElementById(`edit-name-${id}`).value,
+            category: document.getElementById(`edit-cat-${id}`).value,
+            storageType: document.getElementById(`edit-stor-${id}`).value,
+            expiryDate: document.getElementById(`edit-date-${id}`).value
+        });
+        editingId = null;
     }
 
+    async function deleteItem(id) {
+        if(confirm('냉장고에서 뺄까요?')) {
+            const { deleteDoc, doc } = window.firestoreTools;
+            await deleteDoc(doc(window.db, "inventory", id));
+        }
+    }
+
+    async function updateQty(id, chg) {
+        const { updateDoc, doc } = window.firestoreTools;
+        const item = inventory.find(x => x.id === id);
+        const newQty = item.quantity + chg;
+        if(newQty <= 0) deleteItem(id);
+        else await updateDoc(doc(window.db, "inventory", id), { quantity: newQty });
+    }
+
+    // UI & Scanner
+    document.getElementById('open-reg-modal').onclick = () => { regModal.style.display = 'flex'; };
+    document.getElementById('close-reg-modal').onclick = () => { regModal.style.display = 'none'; };
     document.getElementById('search-input').oninput = (e) => { searchQuery = e.target.value; renderInventory(); };
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => {
@@ -424,7 +471,6 @@
     }
     document.getElementById('close-scanner').onclick = closeScanner;
 
-    init();
 </script>
 </body>
 </html>
