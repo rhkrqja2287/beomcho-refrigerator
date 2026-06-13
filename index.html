@@ -66,23 +66,40 @@
         .tab-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); font-size: 0.8125rem; cursor: pointer; white-space: nowrap; }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        .inventory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* 목록형 리스트 */
+        .inventory-grid { display: flex; flex-direction: column; gap: 0; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
 
-        .food-card { background: var(--card-bg); border-radius: 12px; padding: 10px; box-shadow: var(--shadow); border: 2px solid transparent; display: flex; flex-direction: column; gap: 6px; }
-        .food-card.expiring-soon { border-color: var(--danger-color); background-color: #FFF5F5; }
-        .food-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
-        .food-name { font-weight: 700; font-size: 0.9rem; line-height: 1.3; }
-        .category-tag { font-size: 0.6rem; padding: 2px 5px; border-radius: 8px; background: #F3F4F6; color: #6B7280; font-weight: 600; white-space: nowrap; }
-        .food-info { font-size: 0.72rem; color: var(--text-muted); }
-        .food-info div { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .quantity-control { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 5px; background: #F9FAFB; border-radius: 8px; border: 1px solid #F3F4F6; }
-        .q-btn { width: 24px; height: 24px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 0.85rem; }
-        .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .action-btn { padding: 5px; border-radius: 8px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: all 0.2s; }
+        .food-card { background: var(--card-bg); padding: 11px 14px; border: none; border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; gap: 10px; }
+        .food-card:last-child { border-bottom: none; }
+        .food-card.expiring-soon { background-color: #FFF5F5; }
+
+        /* 왼쪽 D-Day 뱃지 */
+        .dday-badge { min-width: 38px; text-align: center; font-size: 0.65rem; font-weight: 700; padding: 3px 4px; border-radius: 7px; background: #F3F4F6; color: var(--text-muted); line-height: 1.3; }
+        .dday-badge.urgent { background: #FEE2E2; color: var(--danger-color); }
+
+        /* 중앙 정보 */
+        .food-main { flex: 1; min-width: 0; }
+        .food-name { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .food-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+
+        /* 오른쪽 수량 + 액션 */
+        .food-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .quantity-control { display: flex; align-items: center; gap: 5px; }
+        .q-btn { width: 22px; height: 22px; border-radius: 50%; border: none; background: #F3F4F6; cursor: pointer; font-weight: bold; font-size: 0.8rem; line-height: 1; }
+        .qty-num { font-size: 0.85rem; font-weight: 700; min-width: 16px; text-align: center; }
+        .food-actions { display: flex; gap: 4px; }
+        .action-btn { padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.68rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
         .edit-btn { border: 1px solid var(--primary-color); color: var(--primary-color); background: white; }
         .delete-btn { border: 1px solid var(--danger-color); color: var(--danger-color); background: white; }
         .save-btn { background: var(--primary-color); color: white; border: none; }
         .cancel-btn { background: var(--text-muted); color: white; border: none; }
+
+        /* 인라인 수정 폼 (목록형) */
+        .inline-edit-form { width: 100%; }
+        .inline-edit-row { display: flex; gap: 6px; margin-bottom: 6px; }
+        .inline-edit-form input, .inline-edit-form select { padding: 6px 8px; font-size: 0.8rem; border-radius: 7px; border: 1px solid #E5E7EB; width: 100%; }
+        .card-actions { display: flex; gap: 5px; margin-top: 4px; }
+        .card-actions .action-btn { flex: 1; padding: 6px; font-size: 0.75rem; text-align: center; }
 
         .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--primary-color); color: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 8px 16px rgba(16,185,129,0.3); z-index: 900; }
 
@@ -309,41 +326,42 @@
             if (isEditing) {
                 card.innerHTML = `
                     <div class="inline-edit-form">
-                        <div class="form-group"><label>식품명</label><input type="text" id="edit-name-${item.id}" value="${item.name}"></div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <div class="form-group"><label>카테고리</label>
-                                <select id="edit-cat-${item.id}">
-                                    ${['채소/과일','육류/해산물','유제품','가공식품','음료','기타'].map(c => `<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group"><label>보관</label>
-                                <select id="edit-stor-${item.id}">
-                                    ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
-                                </select>
-                            </div>
+                        <div class="inline-edit-row">
+                            <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="식품명">
+                            <select id="edit-stor-${item.id}" style="min-width:60px">
+                                ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
+                            </select>
                         </div>
-                        <div class="form-group"><label>유통기한</label><input type="date" id="edit-date-${item.id}" value="${item.expiryDate}"></div>
+                        <div class="inline-edit-row">
+                            <select id="edit-cat-${item.id}">
+                                ${['채소/과일','육류/해산물','유제품','가공식품','음료','기타'].map(c => `<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
+                            </select>
+                            <input type="date" id="edit-date-${item.id}" value="${item.expiryDate}">
+                        </div>
                         <div class="card-actions">
                             <button class="action-btn save-btn" onclick="saveEdit('${item.id}')">저장</button>
                             <button class="action-btn cancel-btn" onclick="cancelEdit()">취소</button>
                         </div>
                     </div>`;
             } else {
-                let dDayText = dDay < 0 ? `지남 (D+${Math.abs(dDay)})` : dDay === 0 ? '오늘 만료' : `D-${dDay}`;
+                const dDayText = dDay < 0 ? `D+${Math.abs(dDay)}` : dDay === 0 ? '오늘' : `D-${dDay}`;
+                const urgent = dDay <= 3;
                 card.innerHTML = `
-                    <div class="food-header"><span class="food-name">${item.name}</span><span class="category-tag">${item.category}</span></div>
-                    <div class="food-info">
-                        <div><span>보관:</span> <strong>${item.storageType}</strong></div>
-                        <div><span>유통기한:</span> <strong style="${dDay<=3?'color:var(--danger-color)':''}">${item.expiryDate} (${dDayText})</strong></div>
+                    <div class="dday-badge ${urgent ? 'urgent' : ''}">${dDayText}</div>
+                    <div class="food-main">
+                        <div class="food-name">${item.name}</div>
+                        <div class="food-sub">${item.category} · ${item.storageType} · ${item.expiryDate}</div>
                     </div>
-                    <div class="quantity-control">
-                        <button class="q-btn" onclick="updateQty('${item.id}',-1)">−</button>
-                        <span><strong>${item.quantity}</strong></span>
-                        <button class="q-btn" onclick="updateQty('${item.id}',1)">+</button>
-                    </div>
-                    <div class="card-actions">
-                        <button class="action-btn edit-btn" onclick="startEdit('${item.id}')">수정</button>
-                        <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')">삭제</button>
+                    <div class="food-right">
+                        <div class="quantity-control">
+                            <button class="q-btn" onclick="updateQty('${item.id}',-1)">−</button>
+                            <span class="qty-num">${item.quantity}</span>
+                            <button class="q-btn" onclick="updateQty('${item.id}',1)">+</button>
+                        </div>
+                        <div class="food-actions">
+                            <button class="action-btn edit-btn" onclick="startEdit('${item.id}')">수정</button>
+                            <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')">삭제</button>
+                        </div>
                     </div>`;
             }
             inventoryList.appendChild(card);
@@ -410,16 +428,67 @@
         };
     });
 
+    // ============================================================
+    // 바코드 → 제품 정보 조회 (공공데이터포털 식품안전나라)
+    // ============================================================
+    const API_KEY = '252af7493ac47eea056e5442f2e5e929f5da162acdd0cf04d9bd7beef5ac65a1';
+
+    function mapCategory(raw) {
+        if (!raw) return '기타';
+        if (raw.includes('채소') || raw.includes('과일') || raw.includes('농산')) return '채소/과일';
+        if (raw.includes('육') || raw.includes('고기') || raw.includes('수산') || raw.includes('해산') || raw.includes('어패')) return '육류/해산물';
+        if (raw.includes('유제품') || raw.includes('우유') || raw.includes('치즈') || raw.includes('유가공')) return '유제품';
+        if (raw.includes('음료') || raw.includes('주류') || raw.includes('차') || raw.includes('커피')) return '음료';
+        if (raw.includes('가공') || raw.includes('즉석') || raw.includes('면') || raw.includes('과자') || raw.includes('빵')) return '가공식품';
+        return '기타';
+    }
+
+    async function fetchProductByBarcode(barcode) {
+        const url = `https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo01/getFoodNtrCpntDbInq01?serviceKey=${API_KEY}&pageNo=1&numOfRows=1&type=json&BARCD_NO=${barcode}`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            const items = data?.body?.items;
+            if (items && items.length > 0) {
+                const item = items[0];
+                return {
+                    name: item.PRDLST_NM || '',
+                    category: mapCategory(item.PRDLST_DCNM || item.BSSH_NM || '')
+                };
+            }
+        } catch (e) {
+            console.error('API 오류:', e);
+        }
+        return null;
+    }
+
     // 바코드 스캐너
     let html5QrCode;
     document.getElementById('scan-btn').onclick = () => {
         document.getElementById('scanner-modal').style.display = 'flex';
         html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-            document.getElementById('food-name').value = txt;
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (barcode) => {
             closeScanner();
+            const nameInput = document.getElementById('food-name');
+            nameInput.value = '조회 중...';
+            nameInput.disabled = true;
+
+            const product = await fetchProductByBarcode(barcode);
+
+            nameInput.disabled = false;
+            regModal.style.display = 'flex';
+
+            if (product && product.name) {
+                nameInput.value = product.name;
+                document.getElementById('food-category').value = product.category;
+            } else {
+                nameInput.value = '';
+                nameInput.placeholder = '제품을 찾지 못했어요. 직접 입력해주세요.';
+                alert(`바코드(${barcode})\n제품 정보를 찾지 못했어요. 직접 입력해주세요!`);
+            }
         }).catch(() => { alert('카메라 권한을 허용해주세요.'); closeScanner(); });
     };
+
     function closeScanner() {
         if (html5QrCode && html5QrCode.isScanning) {
             html5QrCode.stop().then(() => { html5QrCode.clear(); document.getElementById('scanner-modal').style.display = 'none'; });
