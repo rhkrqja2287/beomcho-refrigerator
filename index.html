@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>범초냉장고</title>
+    <!-- html5-qrcode Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #10B981;
+            --primary-dark: #059669;
+            --secondary-color: #3B82F6;
+            --danger-color: #EF4444;
+            --warning-color: #F59E0B;
+            --bg-color: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 15px;
+            padding-bottom: 90px;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        header { margin-bottom: 20px; }
+        h1 { font-size: 1.75rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 15px; text-align: center; letter-spacing: -0.5px; }
+        
+        .summary-widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .widget {
+            background: var(--card-bg); padding: 12px; border-radius: 12px; box-shadow: var(--shadow);
+            text-align: center; border-top: 4px solid var(--primary-color);
+        }
+        .widget.warning { border-top-color: var(--danger-color); }
+        .widget-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
+        .widget-value { font-size: 1.25rem; font-weight: 700; }
+
+        /* Recipe Recommendation Section */
+        #recipe-section { margin-bottom: 25px; display: none; }
+        .recipe-title { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .recipe-container { 
+            display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 10px 0; 
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .recipe-container::-webkit-scrollbar { display: none; }
+        .recipe-card {
+            min-width: 200px; background: white; padding: 15px; border-radius: 15px;
+            box-shadow: var(--shadow); border-left: 4px solid var(--secondary-color);
+        }
+        .recipe-card h4 { font-size: 0.9rem; margin-bottom: 5px; color: var(--secondary-color); }
+        .recipe-card p { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Controls */
+        .list-controls { margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .search-box input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .tab-btn {
+            padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color);
+            background: var(--card-bg); font-size: 0.8125rem; cursor: pointer; white-space: nowrap;
+        }
+        .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* Grid */
+        .inventory-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 640px) { .inventory-grid { grid-template-columns: 1fr 1fr; } }
+
+        /* Food Card */
+        .food-card {
+            background: var(--card-bg); border-radius: 16px; padding: 18px; box-shadow: var(--shadow);
+            border: 2px solid transparent; display: flex; flex-direction: column; gap: 12px;
+        }
+        .food-card.expiring-soon { border-color: var(--danger-color); background-color: #FFF5F5; }
+        .food-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .food-name { font-weight: 700; font-size: 1.1rem; }
+        .category-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: #F3F4F6; color: #6B7280; font-weight: 600; }
+        .food-info { font-size: 0.85rem; color: var(--text-muted); }
+        .food-info div { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .quantity-control {
+            display: flex; align-items: center; gap: 15px; justify-content: center;
+            padding: 8px; background: #F9FAFB; border-radius: 10px; border: 1px solid #F3F4F6;
+        }
+        .q-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .action-btn { padding: 8px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+        .edit-btn { border: 1px solid var(--primary-color); color: var(--primary-color); background: white; }
+        .delete-btn { border: 1px solid var(--danger-color); color: var(--danger-color); background: white; }
+        .save-btn { background: var(--primary-color); color: white; border: none; }
+        .cancel-btn { background: var(--text-muted); color: white; border: none; }
+
+        /* Floating Button */
+        .fab {
+            position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px;
+            background: var(--primary-color); color: white; border-radius: 30px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; cursor: pointer; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3); z-index: 900;
+        }
+
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 24px; width: 100%; max-width: 400px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-modal { font-size: 28px; cursor: pointer; color: #D1D5DB; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4B5563; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 12px; outline: none; font-size: 1rem; }
+        .input-group-row { display: flex; gap: 8px; }
+        .scan-btn { background: #F3F4F6; border: none; border-radius: 12px; padding: 0 15px; cursor: pointer; font-size: 1.2rem; }
+        .submit-btn { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+
+        .inline-edit-form label { font-size: 0.75rem; margin-bottom: 3px; }
+        .inline-edit-form input, .inline-edit-form select { padding: 8px; font-size: 0.85rem; margin-bottom: 8px; border-radius: 8px; }
+
+        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>범초냉장고</h1>
+        <div class="summary-widgets">
+            <div class="widget">
+                <div class="widget-label">전체 재고</div>
+                <div id="total-count" class="widget-value">0</div>
+            </div>
+            <div class="widget warning">
+                <div class="widget-label">유통기한 임박</div>
+                <div id="near-expiry-count" class="widget-value">0</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Recipe Recommendation Section -->
+    <section id="recipe-section">
+        <div class="recipe-title">👨‍🍳 남은 재료 활용 레시피</div>
+        <div id="recipe-list" class="recipe-container">
+            <!-- Recipes injected here -->
+        </div>
+    </section>
+
+    <div class="list-controls">
+        <div class="search-box"><input type="text" id="search-input" placeholder="어떤 재료가 궁금하세요?"></div>
+        <div class="filter-tabs">
+            <button class="tab-btn active" data-filter="all">전체</button>
+            <button class="tab-btn" data-filter="냉장">냉장</button>
+            <button class="tab-btn" data-filter="냉동">냉동</button>
+            <button class="tab-btn" data-filter="실온">실온</button>
+        </div>
+    </div>
+
+    <div id="inventory-list" class="inventory-grid"></div>
+</div>
+
+<div class="fab" id="open-reg-modal">＋</div>
+
+<div id="reg-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🛒 식품 등록</h3>
+            <span class="close-modal" id="close-reg-modal">&times;</span>
+        </div>
+        <form id="add-food-form">
+            <div class="form-group">
+                <label>식품명</label>
+                <div class="input-group-row">
+                    <input type="text" id="food-name" placeholder="무엇을 넣으실 건가요?" required>
+                    <button type="button" id="scan-btn" class="scan-btn">📷</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>카테고리</label>
+                <select id="food-category">
+                    <option>채소/과일</option><option>육류/해산물</option><option>유제품</option><option>가공식품</option><option>음료</option><option>기타</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label>수량</label>
+                    <input type="number" id="food-quantity" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>보관 장소</label>
+                    <select id="storage-type">
+                        <option>냉장</option><option>냉동</option><option>실온</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>유통기한</label>
+                <input type="date" id="expiry-date" required>
+            </div>
+            <button type="submit" class="submit-btn">등록하기</button>
+        </form>
+    </div>
+</div>
+
+<div id="scanner-modal" class="modal">
+    <div class="modal-content">
+        <div id="reader"></div>
+        <button id="close-scanner" class="action-btn cancel-btn" style="width: 100%;">취소</button>
+    </div>
+</div>
+
+<script>
+    let inventory = JSON.parse(localStorage.getItem('fridgeInventory')) || [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let editingId = null;
+
+    const inventoryList = document.getElementById('inventory-list');
+    const recipeSection = document.getElementById('recipe-section');
+    const recipeList = document.getElementById('recipe-list');
+    const regModal = document.getElementById('reg-modal');
+
+    const RECIPE_DATA = {
+        '채소/과일': [
+            { title: '야채 볶음밥', desc: '자투리 채소를 잘게 썰어 볶아주세요.' },
+            { title: '과일 스무디', desc: '과일과 우유를 믹서기에 갈아보세요.' }
+        ],
+        '육류/해산물': [
+            { title: '제육볶음', desc: '고추장 양념과 함께 볶아보세요.' },
+            { title: '해산물 라면', desc: '해물을 넣어 국물을 시원하게!' }
+        ],
+        '유제품': [
+            { title: '우유 카레', desc: '물 대신 우유를 넣으면 고소해요.' },
+            { title: '프렌치 토스트', desc: '식빵을 우유와 달걀물에 적셔 구우세요.' }
+        ],
+        '가공식품': [
+            { title: '부대찌개', desc: '햄과 소시지를 듬뿍 넣어 끓여보세요.' },
+            { title: '참치 비빔밥', desc: '참치캔과 야채를 넣어 간편하게.' }
+        ]
+    };
+
+    function init() {
+        renderInventory();
+        updateSummary();
+        document.getElementById('expiry-date').valueAsDate = new Date();
+    }
+
+    function save() {
+        localStorage.setItem('fridgeInventory', JSON.stringify(inventory));
+        updateSummary();
+    }
+
+    function calculateDDay(dateStr) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const target = new Date(dateStr); target.setHours(0,0,0,0);
+        return Math.ceil((target - today) / 86400000);
+    }
+
+    function updateSummary() {
+        document.getElementById('total-count').textContent = inventory.length;
+        const nearExpiry = inventory.filter(i => calculateDDay(i.expiryDate) <= 3);
+        document.getElementById('near-expiry-count').textContent = nearExpiry.length;
+        updateRecipes(nearExpiry);
+    }
+
+    function updateRecipes(nearExpiryItems) {
+        if (nearExpiryItems.length === 0) {
+            recipeSection.style.display = 'none';
+            return;
+        }
+        
+        recipeSection.style.display = 'block';
+        recipeList.innerHTML = '';
+        
+        const suggestedCategories = [...new Set(nearExpiryItems.map(i => i.category))];
+        let recipesToShow = [];
+        
+        suggestedCategories.forEach(cat => {
+            if (RECIPE_DATA[cat]) recipesToShow = [...recipesToShow, ...RECIPE_DATA[cat]];
+        });
+
+        if (recipesToShow.length === 0) {
+            recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료로 맛있는 요리를 만들어보세요!' });
+        }
+
+        recipesToShow.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'recipe-card';
+            div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p>`;
+            recipeList.appendChild(div);
+        });
+    }
+
+    function renderInventory() {
+        inventoryList.innerHTML = '';
+        const filtered = inventory.filter(i => {
+            const fMatch = currentFilter === 'all' || i.storageType === currentFilter;
+            const sMatch = i.name.toLowerCase().includes(searchQuery.toLowerCase());
+            return fMatch && sMatch;
+        }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+
+        if (!filtered.length) {
+            inventoryList.innerHTML = '<div class="empty-state">검색 결과가 없거나 냉장고가 비어있어요.</div>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const dDay = calculateDDay(item.expiryDate);
+            const isEditing = editingId === item.id;
+            const card = document.createElement('article');
+            card.className = `food-card ${dDay <= 3 ? 'expiring-soon' : ''}`;
+
+            if (isEditing) {
+                card.innerHTML = `
+                    <div class="inline-edit-form">
+                        <div class="form-group"><label>식품명</label><input type="text" id="edit-name-${item.id}" value="${item.name}"></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="form-group"><label>카테고리</label>
+                                <select id="edit-cat-${item.id}">
+                                    ${['채소/과일','육류/해산물','유제품','가공식품','음료','기타'].map(c => `<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group"><label>보관</label>
+                                <select id="edit-stor-${item.id}">
+                                    ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>유통기한</label><input type="date" id="edit-date-${item.id}" value="${item.expiryDate}"></div>
+                        <div class="card-actions">
+                            <button class="action-btn save-btn" onclick="saveEdit(${item.id})">저장</button>
+                            <button class="action-btn cancel-btn" onclick="cancelEdit()">취소</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let dDayText = dDay < 0 ? `지남 (D+${Math.abs(dDay)})` : dDay === 0 ? '오늘 만료' : `D-${dDay}`;
+                card.innerHTML = `
+                    <div class="food-header"><span class="food-name">${item.name}</span><span class="category-tag">${item.category}</span></div>
+                    <div class="food-info">
+                        <div><span>보관:</span> <strong>${item.storageType}</strong></div>
+                        <div><span>유통기한:</span> <strong style="${dDay<=3?'color:var(--danger-color)':''}">${item.expiryDate} (${dDayText})</strong></div>
+                    </div>
+                    <div class="quantity-control">
+                        <button class="q-btn" onclick="updateQty(${item.id},-1)">-</button>
+                        <span><strong>${item.quantity}</strong></span>
+                        <button class="q-btn" onclick="updateQty(${item.id},1)">+</button>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn edit-btn" onclick="startEdit(${item.id})">수정</button>
+                        <button class="action-btn delete-btn" onclick="deleteItem(${item.id})">삭제</button>
+                    </div>
+                `;
+            }
+            inventoryList.appendChild(card);
+        });
+    }
+
+    document.getElementById('open-reg-modal').onclick = () => { regModal.style.display = 'flex'; };
+    document.getElementById('close-reg-modal').onclick = () => { regModal.style.display = 'none'; };
+    window.onclick = (e) => { if(e.target == regModal) regModal.style.display = 'none'; };
+
+    document.getElementById('add-food-form').onsubmit = (e) => {
+        e.preventDefault();
+        inventory.push({
+            id: Date.now(),
+            name: document.getElementById('food-name').value,
+            category: document.getElementById('food-category').value,
+            quantity: parseInt(document.getElementById('food-quantity').value),
+            storageType: document.getElementById('storage-type').value,
+            expiryDate: document.getElementById('expiry-date').value
+        });
+        document.getElementById('add-food-form').reset();
+        document.getElementById('expiry-date').valueAsDate = new Date();
+        regModal.style.display = 'none'; save(); renderInventory();
+    };
+
+    function startEdit(id) { editingId = id; renderInventory(); }
+    function cancelEdit() { editingId = null; renderInventory(); }
+    function saveEdit(id) {
+        const item = inventory.find(i => i.id === id);
+        item.name = document.getElementById(`edit-name-${id}`).value;
+        item.category = document.getElementById(`edit-cat-${id}`).value;
+        item.storageType = document.getElementById(`edit-stor-${id}`).value;
+        item.expiryDate = document.getElementById(`edit-date-${id}`).value;
+        editingId = null; save(); renderInventory();
+    }
+    function deleteItem(id) { if(confirm('냉장고에서 뺄까요?')) { inventory = inventory.filter(i => i.id !== id); save(); renderInventory(); } }
+    function updateQty(id, chg) {
+        const i = inventory.find(x => x.id === id); i.quantity += chg;
+        if(i.quantity <= 0) deleteItem(id); else { save(); renderInventory(); }
+    }
+
+    document.getElementById('search-input').oninput = (e) => { searchQuery = e.target.value; renderInventory(); };
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelector('.tab-btn.active').classList.remove('active');
+            btn.classList.add('active'); currentFilter = btn.dataset.filter; renderInventory();
+        };
+    });
+
+    let html5QrCode;
+    document.getElementById('scan-btn').onclick = () => {
+        document.getElementById('scanner-modal').style.display = 'flex';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
+            document.getElementById('food-name').value = txt; closeScanner();
+        }).catch(() => { alert('카메라 권한을 허용해주세요.'); closeScanner(); });
+    };
+    function closeScanner() {
+        if(html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().then(() => { html5QrCode.clear(); document.getElementById('scanner-modal').style.display = 'none'; });
+        } else document.getElementById('scanner-modal').style.display = 'none';
+    }
+    document.getElementById('close-scanner').onclick = closeScanner;
+
+    init();
+</script>
+</body>
+</html>
