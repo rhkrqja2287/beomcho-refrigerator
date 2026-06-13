@@ -1,0 +1,18 @@
+{
+  "name": "범초냉장고",
+  "short_name": "범초냉장고",
+  "description": "범초하우스 냉장고 재고 관리 앱",
+  "start_url": "/beomcho-refrigerator/",
+  "display": "standalone",
+  "background_color": "#F9FAFB",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
