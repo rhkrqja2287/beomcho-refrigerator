@@ -45,7 +45,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         /* 모바일 더블클릭 확대 방지 및 iOS 터치 최적화 */
-        html, body, button, input, select, textarea, .fab, .tab-btn, .action-btn, .date-quick-btn {
+        html, body, button, input, select, textarea, .fab, .tab-btn, .action-btn {
             touch-action: manipulation;
         }
 
@@ -682,7 +682,7 @@
             transform: translateY(0);
         }
 
-        /* 아이폰/모바일 유통기한 인풋 최적화 및 5분할 그리드 퀵버튼 */
+        /* 아이폰/모바일 유통기한 인풋 최적화 */
         input[type="date"] {
             -webkit-appearance: none;
             appearance: none;
@@ -698,34 +698,6 @@
             text-align: left;
             font-size: 0.95rem;
             min-height: 1.5em;
-        }
-
-        .quick-date-row {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            margin-top: 8px;
-            width: 100%;
-        }
-
-        .date-quick-btn {
-            width: 100%;
-            text-align: center;
-            background: #F3F4F6;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 7px 2px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            color: #4B5563;
-        }
-
-        .date-quick-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
         }
         
         .empty-state {
@@ -993,13 +965,6 @@
             <div class="form-group">
                 <label>유통기한</label>
                 <input type="date" id="expiry-date" required>
-                <div class="quick-date-row">
-                    <button type="button" class="date-quick-btn" onclick="addDays(3)">+3일</button>
-                    <button type="button" class="date-quick-btn" onclick="addDays(7)">+1주</button>
-                    <button type="button" class="date-quick-btn" onclick="addDays(30)">+1달</button>
-                    <button type="button" class="date-quick-btn" onclick="addDays(90)">+3달</button>
-                    <button type="button" class="date-quick-btn" onclick="addDays(180)">+6달</button>
-                </div>
             </div>
             <button type="submit" class="submit-btn">등록하기</button>
         </form>
@@ -1333,13 +1298,6 @@
         const newQty = item.quantity + chg;
         if (newQty <= 0) deleteItem(id);
         else await inventoryRef.child(id).update({ quantity: newQty });
-    }
-
-    function addDays(days) {
-        const dateInput = document.getElementById('expiry-date');
-        const date = new Date();
-        date.setDate(date.getDate() + days);
-        dateInput.valueAsDate = date;
     }
 
     // ============================================================
