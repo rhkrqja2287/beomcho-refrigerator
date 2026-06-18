@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>범초냉장고</title>
 
     <!-- PWA 설정 -->
@@ -19,7 +19,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         :root {
@@ -45,6 +44,11 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        /* 모바일 더블클릭 확대 방지 및 iOS 터치 최적화 */
+        html, body, button, input, select, textarea, .fab, .tab-btn, .action-btn, .date-quick-btn {
+            touch-action: manipulation;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
@@ -553,7 +557,7 @@
 
         .modal-content {
             background: white;
-            padding: 28px;
+            padding: 24px;
             border-radius: var(--radius-lg);
             width: 100%;
             max-width: 440px;
@@ -586,7 +590,11 @@
 
         .close-modal:hover { color: var(--text-main); }
 
-        .form-group { margin-bottom: 16px; }
+        .form-group { 
+            margin-bottom: 18px; 
+            width: 100%;
+            max-width: 100%;
+        }
         
         label {
             display: block;
@@ -598,6 +606,7 @@
 
         input, select {
             width: 100%;
+            max-width: 100%;
             padding: 12px 14px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -605,6 +614,7 @@
             font-size: 0.95rem;
             background: #F9FAFB;
             transition: all 0.2s;
+            box-sizing: border-box;
         }
 
         input:focus, select:focus {
@@ -613,25 +623,39 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
         }
 
-        .input-group-row { display: flex; gap: 8px; }
+        /* 식품 등록 인풋 + AI 버튼 높이 맞춤 */
+        .input-group-row { 
+            display: flex; 
+            gap: 8px; 
+            width: 100%;
+            align-items: stretch;
+        }
         
+        .input-group-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
         .scan-btn {
-            background: #E5E7EB;
-            border: 1px solid var(--border-color);
+            background: #EEF2F6;
+            border: 1px solid #D1D5DB;
             border-radius: var(--radius-md);
-            padding: 0 12px;
+            padding: 0 16px;
             cursor: pointer;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 6px;
             transition: all 0.2s;
             color: var(--text-main);
+            flex-shrink: 0;
         }
 
         .scan-btn:hover {
-            background: #D1D5DB;
+            background: #E2E8F0;
+            border-color: #9CA3AF;
         }
 
         .submit-btn {
@@ -658,20 +682,40 @@
             transform: translateY(0);
         }
 
-        /* 퀵 기한선택 버튼 */
+        /* 아이폰/모바일 유통기한 인풋 최적화 및 5분할 그리드 퀵버튼 */
+        input[type="date"] {
+            -webkit-appearance: none;
+            appearance: none;
+            position: relative;
+            background-color: #F9FAFB;
+            box-sizing: border-box;
+            min-height: 48px;
+            line-height: 1.5;
+            padding: 10px 12px;
+        }
+        
+        input[type="date"]::-webkit-date-and-time-value {
+            text-align: left;
+            font-size: 0.95rem;
+            min-height: 1.5em;
+        }
+
         .quick-date-row {
-            display: flex;
-            gap: 6px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
             margin-top: 8px;
-            flex-wrap: wrap;
+            width: 100%;
         }
 
         .date-quick-btn {
+            width: 100%;
+            text-align: center;
             background: #F3F4F6;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 0.75rem;
+            padding: 7px 2px;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s;
@@ -683,8 +727,6 @@
             color: white;
             border-color: var(--primary-color);
         }
-
-        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
         
         .empty-state {
             grid-column: 1 / -1;
@@ -822,8 +864,14 @@
             }
             
             .modal-content {
-                padding: 20px;
-                max-height: 85dvh;
+                padding: 20px 18px;
+                max-height: 90dvh;
+                width: 94%;
+            }
+            
+            .scan-btn {
+                padding: 0 12px;
+                font-size: 0.8rem;
             }
         }
 
@@ -912,7 +960,6 @@
                 <label>식품명</label>
                 <div class="input-group-row">
                     <input type="text" id="food-name" placeholder="무엇을 넣으실 건가요?" required>
-                    <button type="button" id="scan-btn" class="scan-btn" title="바코드 인식">📷 바코드</button>
                     <button type="button" id="ai-btn" class="scan-btn" title="AI 사진 인식">🤖 AI 인식</button>
                 </div>
                 <!-- 숨겨진 파일 인풋 (카메라 촬영) -->
@@ -956,14 +1003,6 @@
             </div>
             <button type="submit" class="submit-btn">등록하기</button>
         </form>
-    </div>
-</div>
-
-<!-- 바코드 스캐너 모달 -->
-<div id="scanner-modal" class="modal">
-    <div class="modal-content">
-        <div id="reader"></div>
-        <button id="close-scanner" class="action-btn cancel-btn" style="width: 100%;">취소</button>
     </div>
 </div>
 
@@ -1079,7 +1118,11 @@
         updateSummary();
     });
 
-    document.getElementById('expiry-date').valueAsDate = new Date();
+    // 앱 초기화 및 등록모달 열기 시 오늘 날짜로 유통기한 기본값 설정
+    function setDefaultExpiryDate() {
+        document.getElementById('expiry-date').valueAsDate = new Date();
+    }
+    setDefaultExpiryDate();
 
     // ============================================================
     // 유틸 함수
@@ -1261,7 +1304,7 @@
         };
         await inventoryRef.push(newItem);
         document.getElementById('add-food-form').reset();
-        document.getElementById('expiry-date').valueAsDate = new Date();
+        setDefaultExpiryDate();
         regModal.style.display = 'none';
     };
 
@@ -1302,7 +1345,10 @@
     // ============================================================
     // UI 이벤트 및 설정 제어
     // ============================================================
-    document.getElementById('open-reg-modal').onclick = () => { regModal.style.display = 'flex'; };
+    document.getElementById('open-reg-modal').onclick = () => { 
+        setDefaultExpiryDate(); // 모달이 켜질 때 항상 오늘 날짜 기본 노출
+        regModal.style.display = 'flex'; 
+    };
     document.getElementById('close-reg-modal').onclick = () => { regModal.style.display = 'none'; };
     document.getElementById('search-input').oninput = (e) => { searchQuery = e.target.value; renderInventory(); };
     
@@ -1355,91 +1401,10 @@
     window.onclick = (event) => {
         if (event.target === regModal) regModal.style.display = 'none';
         if (event.target === settingsModal) settingsModal.style.display = 'none';
-        if (event.target === document.getElementById('scanner-modal')) closeScanner();
         if (event.target === document.getElementById('recipe-detail-modal')) {
             document.getElementById('recipe-detail-modal').style.display = 'none';
         }
     };
-
-    // ============================================================
-    // 바코드 → 제품 정보 조회
-    // ============================================================
-    function mapCategory(tags) {
-        if (!tags || !Array.isArray(tags)) return '기타';
-        const joined = tags.join(' ');
-        if (/vegetable|fruit|produce|야채|채소|과일/.test(joined)) return '채소/과일';
-        if (/meat|fish|seafood|beef|pork|chicken|육류|고기|수산|해산/.test(joined)) return '육류/해산물';
-        if (/dairy|milk|cheese|yogurt|유제품|우유|치즈/.test(joined)) return '유제품';
-        if (/beverage|drink|juice|water|tea|coffee|음료|주류/.test(joined)) return '음료';
-        if (/snack|noodle|bread|processed|과자|면|빵|가공/.test(joined)) return '가공식품';
-        return '기타';
-    }
-
-    async function fetchProductByBarcode(barcode) {
-        const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=product_name,product_name_ko,categories_tags`;
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data.status === 1 && data.product) {
-                const p = data.product;
-                const name = p.product_name_ko || p.product_name || '';
-                const category = mapCategory(p.categories_tags);
-                if (name) return { name, category };
-            }
-        } catch (e) {
-            console.error('Open Food Facts 오류:', e);
-        }
-        return null;
-    }
-
-    // 바코드 스캐너
-    let html5QrCode;
-    document.getElementById('scan-btn').onclick = () => {
-        document.getElementById('scanner-modal').style.display = 'flex';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
-            async (barcode) => {
-                await closeScanner();
-                const nameInput = document.getElementById('food-name');
-                nameInput.value = '조회 중...';
-                nameInput.disabled = true;
-                regModal.style.display = 'flex';
-
-                const product = await fetchProductByBarcode(barcode);
-
-                nameInput.disabled = false;
-                if (product && product.name) {
-                    nameInput.value = product.name;
-                    document.getElementById('food-category').value = product.category;
-                } else {
-                    nameInput.value = '';
-                    nameInput.placeholder = '제품을 찾지 못했어요. 직접 입력해주세요.';
-                    alert(`바코드(${barcode})\n제품 정보를 찾지 못했어요. 직접 입력해주세요!`);
-                }
-            }
-        ).catch(() => { alert('카메라 권한을 허용해주세요.'); closeScanner(); });
-    };
-
-    function closeScanner() {
-        return new Promise((resolve) => {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    document.getElementById('scanner-modal').style.display = 'none';
-                    resolve();
-                }).catch(() => {
-                    document.getElementById('scanner-modal').style.display = 'none';
-                    resolve();
-                });
-            } else {
-                document.getElementById('scanner-modal').style.display = 'none';
-                resolve();
-            }
-        });
-    }
-    document.getElementById('close-scanner').onclick = closeScanner;
 
     // ============================================================
     // 이미지 압축 유틸리티
