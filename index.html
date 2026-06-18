@@ -15,121 +15,682 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
 
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         :root {
             --primary-color: #10B981;
             --primary-dark: #059669;
+            --primary-light: #D1FAE5;
             --secondary-color: #3B82F6;
             --danger-color: #EF4444;
+            --danger-light: #FEE2E2;
             --warning-color: #F59E0B;
-            --bg-color: #F9FAFB;
-            --card-bg: #FFFFFF;
-            --text-main: #111827;
+            --bg-color: #F3F4F6;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1F2937;
             --text-muted: #6B7280;
             --border-color: #E5E7EB;
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 20px -2px rgba(0,0,0,0.05), 0 2px 8px -1px rgba(0,0,0,0.03);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 24px;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
+            background-image: radial-gradient(at 0% 0%, hsla(160,84%,93%,1) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, hsla(220,84%,93%,1) 0px, transparent 50%);
             color: var(--text-main);
             line-height: 1.5;
-            padding: 15px;
-            padding-bottom: 90px;
+            padding: 20px 15px;
+            padding-bottom: 100px;
+            min-height: 100vh;
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        header { margin-bottom: 20px; }
-        h1 { font-size: 1.75rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 15px; text-align: center; letter-spacing: -0.5px; }
 
-        .summary-widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .widget { background: var(--card-bg); padding: 12px; border-radius: 12px; box-shadow: var(--shadow); text-align: center; border-top: 4px solid var(--primary-color); }
-        .widget.warning { border-top-color: var(--danger-color); }
-        .widget-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
-        .widget-value { font-size: 1.25rem; font-weight: 700; }
+        .container { max-width: 650px; margin: 0 auto; }
 
-        #recipe-section { margin-bottom: 25px; display: none; }
-        .recipe-title { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
-        .recipe-container { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 10px 0; scrollbar-width: none; }
+        header {
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            padding: 24px 20px;
+            border-radius: var(--radius-lg);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 80%);
+            pointer-events: none;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            z-index: 1;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.25rem;
+            backdrop-filter: blur(4px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(45deg);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .summary-widgets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .widget {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .widget:active {
+            transform: scale(0.98);
+        }
+
+        .widget-label {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .widget-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        #recipe-section {
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .recipe-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-recipe-btn {
+            background: linear-gradient(135deg, #6366F1, #4F46E5);
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            transition: all 0.2s;
+        }
+
+        .ai-recipe-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .ai-recipe-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .recipe-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 0 10px 0;
+            scrollbar-width: none;
+        }
+
         .recipe-container::-webkit-scrollbar { display: none; }
-        .recipe-card { min-width: 200px; background: white; padding: 15px; border-radius: 15px; box-shadow: var(--shadow); border-left: 4px solid var(--secondary-color); cursor: pointer; transition: transform 0.1s; }
-        .recipe-card:active { transform: scale(0.97); }
-        .recipe-card h4 { font-size: 0.9rem; margin-bottom: 5px; color: var(--secondary-color); }
-        .recipe-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
-        .recipe-card .youtube-tag { font-size: 0.7rem; color: #EF4444; font-weight: bold; }
 
-        .list-controls { margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .search-box input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; }
-        .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-        .tab-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); font-size: 0.8125rem; cursor: pointer; white-space: nowrap; }
-        .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .recipe-card {
+            min-width: 220px;
+            max-width: 220px;
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        /* 목록형 리스트 */
-        .inventory-grid { display: flex; flex-direction: column; gap: 0; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+        .recipe-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
 
-        .food-card { background: var(--card-bg); padding: 11px 14px; border: none; border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; gap: 10px; }
-        .food-card:last-child { border-bottom: none; }
-        .food-card.expiring-soon { background-color: #FFF5F5; }
+        .recipe-card h4 {
+            font-size: 0.92rem;
+            margin-bottom: 6px;
+            color: var(--secondary-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-        /* 왼쪽 D-Day 뱃지 */
-        .dday-badge { min-width: 38px; text-align: center; font-size: 0.65rem; font-weight: 700; padding: 3px 4px; border-radius: 7px; background: #F3F4F6; color: var(--text-muted); line-height: 1.3; }
-        .dday-badge.urgent { background: #FEE2E2; color: var(--danger-color); }
+        .recipe-card p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
 
-        /* 중앙 정보 */
+        .recipe-card .youtube-tag {
+            font-size: 0.72rem;
+            color: #EF4444;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .list-controls { margin-bottom: 18px; display: flex; flex-direction: column; gap: 12px; }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            outline: none;
+            background: var(--card-bg);
+            box-shadow: var(--shadow-sm);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        }
+
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+        }
+
+        .inventory-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .food-card {
+            background: var(--card-bg);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .food-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .food-card.expiring-soon {
+            border-left: 5px solid var(--danger-color);
+            background-color: rgba(254, 226, 226, 0.3);
+        }
+
+        .dday-badge {
+            min-width: 48px;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: #E5E7EB;
+            color: var(--text-muted);
+            line-height: 1.2;
+            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .dday-badge.urgent {
+            background: var(--danger-light);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .dday-badge.expired {
+            background: #374151;
+            color: #F9FAFB;
+        }
+
         .food-main { flex: 1; min-width: 0; }
-        .food-name { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .food-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+        
+        .food-name {
+            font-weight: 800;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-        /* 오른쪽 수량 + 액션 */
-        .food-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .quantity-control { display: flex; align-items: center; gap: 5px; }
-        .q-btn { width: 22px; height: 22px; border-radius: 50%; border: none; background: #F3F4F6; cursor: pointer; font-weight: bold; font-size: 0.8rem; line-height: 1; }
-        .qty-num { font-size: 0.85rem; font-weight: 700; min-width: 16px; text-align: center; }
-        .food-actions { display: flex; gap: 4px; }
-        .action-btn { padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.68rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+        .food-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        .food-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #F3F4F6;
+            padding: 3px 6px;
+            border-radius: 20px;
+        }
+
+        .q-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.1s;
+        }
+
+        .q-btn:active {
+            transform: scale(0.9);
+        }
+
+        .qty-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .food-actions { display: flex; gap: 6px; }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
         .edit-btn { border: 1px solid var(--primary-color); color: var(--primary-color); background: white; }
+        .edit-btn:hover { background: var(--primary-light); }
         .delete-btn { border: 1px solid var(--danger-color); color: var(--danger-color); background: white; }
+        .delete-btn:hover { background: var(--danger-light); }
         .save-btn { background: var(--primary-color); color: white; border: none; }
+        .save-btn:hover { background: var(--primary-dark); }
         .cancel-btn { background: var(--text-muted); color: white; border: none; }
-
-        /* 인라인 수정 폼 (목록형) */
+        
+        /* 인라인 수정 폼 */
         .inline-edit-form { width: 100%; }
-        .inline-edit-row { display: flex; gap: 6px; margin-bottom: 6px; }
-        .inline-edit-form input, .inline-edit-form select { padding: 6px 8px; font-size: 0.8rem; border-radius: 7px; border: 1px solid #E5E7EB; width: 100%; }
-        .card-actions { display: flex; gap: 5px; margin-top: 4px; }
-        .card-actions .action-btn { flex: 1; padding: 6px; font-size: 0.75rem; text-align: center; }
+        .inline-edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        
+        .inline-edit-form input, 
+        .inline-edit-form select { 
+            padding: 8px 12px; 
+            font-size: 0.85rem; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+            width: 100%; 
+            outline: none;
+        }
 
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--primary-color); color: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 8px 16px rgba(16,185,129,0.3); z-index: 900; }
+        .inline-edit-form input:focus,
+        .inline-edit-form select:focus {
+            border-color: var(--primary-color);
+        }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 25px; border-radius: 24px; width: 100%; max-width: 400px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .close-modal { font-size: 28px; cursor: pointer; color: #D1D5DB; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4B5563; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 12px; outline: none; font-size: 1rem; }
+        .card-actions { display: flex; gap: 6px; }
+        .card-actions .action-btn { flex: 1; padding: 8px; font-size: 0.8rem; text-align: center; }
+
+        .fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+            z-index: 900;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(16,185,129,0.5);
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            backdrop-filter: blur(6px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .close-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: #9CA3AF;
+            transition: color 0.15s;
+        }
+
+        .close-modal:hover { color: var(--text-main); }
+
+        .form-group { margin-bottom: 16px; }
+        
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            outline: none;
+            font-size: 0.95rem;
+            background: #F9FAFB;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+        }
+
         .input-group-row { display: flex; gap: 8px; }
-        .scan-btn { background: #F3F4F6; border: none; border-radius: 12px; padding: 0 15px; cursor: pointer; font-size: 1.2rem; }
-        .submit-btn { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; }
-        .inline-edit-form label { font-size: 0.75rem; margin-bottom: 3px; }
-        .inline-edit-form input, .inline-edit-form select { padding: 8px; font-size: 0.85rem; margin-bottom: 8px; border-radius: 8px; }
+        
+        .scan-btn {
+            background: #E5E7EB;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0 12px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+
+        .scan-btn:hover {
+            background: #D1D5DB;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 퀵 기한선택 버튼 */
+        .quick-date-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-quick-btn {
+            background: #F3F4F6;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #4B5563;
+        }
+
+        .date-quick-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
         #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
-        .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.9rem; }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+        }
+
+        /* AI 분석 진행중 펄스 이펙트 */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .ai-loading-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+            color: #4F46E5 !important;
+            font-weight: bold;
+        }
+
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🧊 범초냉장고</h1>
+        <div class="header-top">
+            <h1>🧊 범초냉장고</h1>
+            <button id="open-settings-btn" class="settings-btn" title="설정">⚙️</button>
+        </div>
         <div class="summary-widgets">
             <div class="widget">
                 <div class="widget-label">전체 재고</div>
                 <div id="total-count" class="widget-value">0</div>
             </div>
-            <div class="widget warning">
+            <div class="widget">
                 <div class="widget-label">유통기한 임박</div>
                 <div id="near-expiry-count" class="widget-value">0</div>
             </div>
@@ -137,7 +698,12 @@
     </header>
 
     <section id="recipe-section">
-        <div class="recipe-title">👨‍🍳 남은 재료 활용 레시피</div>
+        <div class="recipe-header">
+            <div class="recipe-title">👨‍🍳 남은 재료 활용 레시피</div>
+            <button id="ai-recipe-btn" class="ai-recipe-btn" onclick="getAIRecipes()">
+                ✨ AI 맞춤 추천
+            </button>
+        </div>
         <div id="recipe-list" class="recipe-container"></div>
     </section>
 
@@ -156,6 +722,7 @@
 
 <div class="fab" id="open-reg-modal">＋</div>
 
+<!-- 식품 등록 모달 -->
 <div id="reg-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -167,13 +734,21 @@
                 <label>식품명</label>
                 <div class="input-group-row">
                     <input type="text" id="food-name" placeholder="무엇을 넣으실 건가요?" required>
-                    <button type="button" id="scan-btn" class="scan-btn">📷</button>
+                    <button type="button" id="scan-btn" class="scan-btn" title="바코드 인식">📷 바코드</button>
+                    <button type="button" id="ai-btn" class="scan-btn" title="AI 사진 인식">🤖 AI 인식</button>
                 </div>
+                <!-- 숨겨진 파일 인풋 (카메라 촬영) -->
+                <input type="file" id="ai-photo-input" accept="image/*" capture="environment" style="display: none;">
             </div>
             <div class="form-group">
                 <label>카테고리</label>
                 <select id="food-category">
-                    <option>채소/과일</option><option>육류/해산물</option><option>유제품</option><option>가공식품</option><option>음료</option><option>기타</option>
+                    <option>채소/과일</option>
+                    <option>육류/해산물</option>
+                    <option>유제품</option>
+                    <option>가공식품</option>
+                    <option>음료</option>
+                    <option>기타</option>
                 </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -184,23 +759,65 @@
                 <div class="form-group">
                     <label>보관 장소</label>
                     <select id="storage-type">
-                        <option>냉장</option><option>냉동</option><option>실온</option>
+                        <option>냉장</option>
+                        <option>냉동</option>
+                        <option>실온</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label>유통기한</label>
                 <input type="date" id="expiry-date" required>
+                <div class="quick-date-row">
+                    <button type="button" class="date-quick-btn" onclick="addDays(3)">+3일</button>
+                    <button type="button" class="date-quick-btn" onclick="addDays(7)">+1주</button>
+                    <button type="button" class="date-quick-btn" onclick="addDays(30)">+1달</button>
+                    <button type="button" class="date-quick-btn" onclick="addDays(90)">+3달</button>
+                    <button type="button" class="date-quick-btn" onclick="addDays(180)">+6달</button>
+                </div>
             </div>
             <button type="submit" class="submit-btn">등록하기</button>
         </form>
     </div>
 </div>
 
+<!-- 바코드 스캐너 모달 -->
 <div id="scanner-modal" class="modal">
     <div class="modal-content">
         <div id="reader"></div>
         <button id="close-scanner" class="action-btn cancel-btn" style="width: 100%;">취소</button>
+    </div>
+</div>
+
+<!-- 설정 모달 (Gemini API 키 등록용) -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>⚙️ 설정</h3>
+            <span class="close-modal" id="close-settings-modal">&times;</span>
+        </div>
+        <div class="form-group">
+            <label>Gemini API Key</label>
+            <input type="password" id="gemini-api-key" placeholder="AI 기능을 사용하려면 API 키를 입력하세요">
+            <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 6px; line-height: 1.4;">
+                API 키는 브라우저 로컬 스토리지에만 안전하게 저장됩니다. 
+                <a href="https://aistudio.google.com/" target="_blank" style="color: var(--secondary-color); text-decoration: underline; font-weight: 600;">여기서 무료로 발급받을 수 있습니다.</a>
+            </small>
+        </div>
+        <button id="save-settings-btn" class="submit-btn" style="background: linear-gradient(135deg, #4B5563, #374151);">설정 저장</button>
+    </div>
+</div>
+
+<!-- 레시피 상세 정보 모달 -->
+<div id="recipe-detail-modal" class="modal">
+    <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3 id="recipe-detail-title">레시피 정보</h3>
+            <span class="close-modal" id="close-recipe-detail-modal">&times;</span>
+        </div>
+        <div id="recipe-detail-content">
+            <!-- 동적 삽입 -->
+        </div>
     </div>
 </div>
 
@@ -239,23 +856,30 @@
     const recipeSection = document.getElementById('recipe-section');
     const recipeList = document.getElementById('recipe-list');
     const regModal = document.getElementById('reg-modal');
+    
+    // 설정 모달 관련 엘리먼트
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const closeSettingsModal = document.getElementById('close-settings-modal');
+    const geminiApiKeyInput = document.getElementById('gemini-api-key');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
 
     const RECIPE_DATA = {
         '채소/과일': [
-            { title: '야채 볶음밥', desc: '자투리 채소를 잘게 썰어 볶아주세요.' },
-            { title: '과일 스무디', desc: '과일과 우유를 믹서기에 갈아보세요.' }
+            { title: '야채 볶음밥', desc: '자투리 채소를 잘게 썰어 기름에 볶아주세요.' },
+            { title: '과일 스무디', desc: '과일과 우유, 얼음을 믹서기에 갈아보세요.' }
         ],
         '육류/해산물': [
-            { title: '제육볶음', desc: '고추장 양념과 함께 볶아보세요.' },
-            { title: '해산물 라면', desc: '해물을 넣어 국물을 시원하게!' }
+            { title: '제육볶음', desc: '고추장 양념과 채소를 함께 넣어 볶아보세요.' },
+            { title: '해산물 라면', desc: '다양한 해물을 넣어 국물을 칼칼하고 시원하게!' }
         ],
         '유제품': [
-            { title: '우유 카레', desc: '물 대신 우유를 넣으면 고소해요.' },
-            { title: '프렌치 토스트', desc: '식빵을 우유와 달걀물에 적셔 구우세요.' }
+            { title: '우유 카레', desc: '물 대신 우유를 약간 섞어 끓이면 부드러워요.' },
+            { title: '프렌치 토스트', desc: '식빵을 우유와 달걀물에 푹 적셔 버터에 구우세요.' }
         ],
         '가공식품': [
-            { title: '부대찌개', desc: '햄과 소시지를 듬뿍 넣어 끓여보세요.' },
-            { title: '참치 비빔밥', desc: '참치캔과 야채를 넣어 간편하게.' }
+            { title: '부대찌개', desc: '햄과 소시지, 김치를 듬뿍 넣어 끓여보세요.' },
+            { title: '참치 비빔밥', desc: '참치캔 기름을 빼고 채소와 고추장을 넣어 완성!' }
         ]
     };
 
@@ -279,7 +903,20 @@
     function calculateDDay(dateStr) {
         const today = new Date(); today.setHours(0,0,0,0);
         const target = new Date(dateStr); target.setHours(0,0,0,0);
-        return Math.ceil((target - today) / 86400000);
+        const diffTime = target.getTime() - today.getTime();
+        return Math.round(diffTime / 86400000);
+    }
+
+    function getCategoryEmoji(category) {
+        const emojis = {
+            '채소/과일': '🥦',
+            '육류/해산물': '🥩',
+            '유제품': '🥛',
+            '가공식품': '🥫',
+            '음료': '🥤',
+            '기타': '📦'
+        };
+        return emojis[category] || '📦';
     }
 
     function updateSummary() {
@@ -290,13 +927,36 @@
     }
 
     function updateRecipes(nearExpiryItems) {
-        if (nearExpiryItems.length === 0) { recipeSection.style.display = 'none'; return; }
+        if (nearExpiryItems.length === 0) { 
+            // 임박 재료가 없더라도 전체 레시피를 보려면 빈 화면 대신 가공식품 등 기본 노출
+            recipeSection.style.display = 'block';
+            recipeList.innerHTML = '';
+            
+            const defaultRecipes = [
+                { title: '계란 볶음밥', desc: '파기름에 밥과 계란만 풀어 볶아보세요.' },
+                { title: '참치 김치찌개', desc: '김치와 참치캔을 넣어 시원하게 끓여냅니다.' }
+            ];
+            
+            defaultRecipes.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'recipe-card';
+                div.onclick = () => window.open(`https://www.youtube.com/results?search_query=${r.title}+레시피`, '_blank');
+                div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p><span class="youtube-tag">▶ 유튜브에서 보기</span>`;
+                recipeList.appendChild(div);
+            });
+            return; 
+        }
+        
         recipeSection.style.display = 'block';
         recipeList.innerHTML = '';
         const categories = [...new Set(nearExpiryItems.map(i => i.category))];
         let recipesToShow = [];
         categories.forEach(cat => { if (RECIPE_DATA[cat]) recipesToShow = [...recipesToShow, ...RECIPE_DATA[cat]]; });
-        if (recipesToShow.length === 0) recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료로 맛있는 요리를 만들어보세요!' });
+        
+        if (recipesToShow.length === 0) {
+            recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료를 모아 맛있는 한 끼를 만들어보세요!' });
+        }
+        
         recipesToShow.forEach(r => {
             const div = document.createElement('div');
             div.className = 'recipe-card';
@@ -313,22 +973,27 @@
             const sMatch = i.name.toLowerCase().includes(searchQuery.toLowerCase());
             return fMatch && sMatch;
         });
+        
         if (!filtered.length) {
             inventoryList.innerHTML = '<div class="empty-state">검색 결과가 없거나 냉장고가 비어있어요.</div>';
             return;
         }
+
         filtered.forEach(item => {
             const dDay = calculateDDay(item.expiryDate);
             const isEditing = editingId === item.id;
             const card = document.createElement('article');
-            card.className = `food-card ${dDay <= 3 ? 'expiring-soon' : ''}`;
+            
+            const isExpired = dDay < 0;
+            const isNearExpiry = dDay <= 3;
+            card.className = `food-card ${isNearExpiry ? 'expiring-soon' : ''}`;
 
             if (isEditing) {
                 card.innerHTML = `
                     <div class="inline-edit-form">
                         <div class="inline-edit-row">
                             <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="식품명">
-                            <select id="edit-stor-${item.id}" style="min-width:60px">
+                            <select id="edit-stor-${item.id}" style="min-width:70px">
                                 ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
                             </select>
                         </div>
@@ -344,12 +1009,25 @@
                         </div>
                     </div>`;
             } else {
-                const dDayText = dDay < 0 ? `D+${Math.abs(dDay)}` : dDay === 0 ? '오늘' : `D-${dDay}`;
-                const urgent = dDay <= 3;
+                let dDayText = '';
+                if (isExpired) {
+                    dDayText = `기한지남<br>D+${Math.abs(dDay)}`;
+                } else if (dDay === 0) {
+                    dDayText = '오늘<br>만료';
+                } else {
+                    dDayText = `D-${dDay}`;
+                }
+                
+                let badgeClass = 'dday-badge';
+                if (isExpired) badgeClass += ' urgent expired';
+                else if (isNearExpiry) badgeClass += ' urgent';
+
+                const emoji = getCategoryEmoji(item.category);
+
                 card.innerHTML = `
-                    <div class="dday-badge ${urgent ? 'urgent' : ''}">${dDayText}</div>
+                    <div class="${badgeClass}">${dDayText}</div>
                     <div class="food-main">
-                        <div class="food-name">${item.name}</div>
+                        <div class="food-name">${emoji} ${item.name}</div>
                         <div class="food-sub">${item.category} · ${item.storageType} · ${item.expiryDate}</div>
                     </div>
                     <div class="food-right">
@@ -413,12 +1091,20 @@
         else await inventoryRef.child(id).update({ quantity: newQty });
     }
 
+    function addDays(days) {
+        const dateInput = document.getElementById('expiry-date');
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        dateInput.valueAsDate = date;
+    }
+
     // ============================================================
-    // UI 이벤트
+    // UI 이벤트 및 설정 제어
     // ============================================================
     document.getElementById('open-reg-modal').onclick = () => { regModal.style.display = 'flex'; };
     document.getElementById('close-reg-modal').onclick = () => { regModal.style.display = 'none'; };
     document.getElementById('search-input').oninput = (e) => { searchQuery = e.target.value; renderInventory(); };
+    
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.onclick = () => {
             document.querySelector('.tab-btn.active').classList.remove('active');
@@ -428,8 +1114,38 @@
         };
     });
 
+    // 설정 모달 열기/닫기
+    openSettingsBtn.onclick = () => {
+        geminiApiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
+        settingsModal.style.display = 'flex';
+    };
+
+    closeSettingsModal.onclick = () => { settingsModal.style.display = 'none'; };
+
+    saveSettingsBtn.onclick = () => {
+        const key = geminiApiKeyInput.value.trim();
+        if (key) {
+            localStorage.setItem('gemini_api_key', key);
+            alert('Gemini API 키가 성공적으로 저장되었습니다!');
+        } else {
+            localStorage.removeItem('gemini_api_key');
+            alert('Gemini API 키가 해제되었습니다.');
+        }
+        settingsModal.style.display = 'none';
+    };
+
+    // 모달 밖 영역 터치 시 닫기
+    window.onclick = (event) => {
+        if (event.target === regModal) regModal.style.display = 'none';
+        if (event.target === settingsModal) settingsModal.style.display = 'none';
+        if (event.target === document.getElementById('scanner-modal')) closeScanner();
+        if (event.target === document.getElementById('recipe-detail-modal')) {
+            document.getElementById('recipe-detail-modal').style.display = 'none';
+        }
+    };
+
     // ============================================================
-    // 바코드 → 제품 정보 조회 (Open Food Facts - CORS 지원)
+    // 바코드 → 제품 정보 조회
     // ============================================================
     function mapCategory(tags) {
         if (!tags || !Array.isArray(tags)) return '기타';
@@ -443,7 +1159,6 @@
     }
 
     async function fetchProductByBarcode(barcode) {
-        // Open Food Facts: CORS 허용, 전 세계 식품 DB
         const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=product_name,product_name_ko,categories_tags`;
         try {
             const res = await fetch(url);
@@ -469,7 +1184,6 @@
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
             async (barcode) => {
-                // 스캐너를 완전히 닫은 뒤 등록 모달 열기 (race condition 방지)
                 await closeScanner();
                 const nameInput = document.getElementById('food-name');
                 nameInput.value = '조회 중...';
@@ -509,6 +1223,296 @@
         });
     }
     document.getElementById('close-scanner').onclick = closeScanner;
+
+    // ============================================================
+    // 이미지 압축 유틸리티
+    // ============================================================
+    function compressImage(file, maxWidth = 800, maxHeight = 800) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    const base64Str = dataUrl.split(',')[1];
+                    resolve(base64Str);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
+    // ============================================================
+    // Gemini AI 제품 인식 연동
+    // ============================================================
+    const aiBtn = document.getElementById('ai-btn');
+    const aiPhotoInput = document.getElementById('ai-photo-input');
+
+    aiBtn.onclick = () => {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            alert('AI 기능을 사용하려면 우측 상단 설정(⚙️)에서 Gemini API 키를 먼저 등록해주세요.');
+            settingsModal.style.display = 'flex';
+            return;
+        }
+        aiPhotoInput.click();
+    };
+
+    aiPhotoInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await analyzeProductWithAI(file);
+        }
+        aiPhotoInput.value = ''; // 재입력 가능하도록 초기화
+    };
+
+    async function analyzeProductWithAI(file) {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        const nameInput = document.getElementById('food-name');
+        const categorySelect = document.getElementById('food-category');
+        const storageSelect = document.getElementById('storage-type');
+        const expiryInput = document.getElementById('expiry-date');
+
+        const originalPlaceholder = nameInput.placeholder;
+        nameInput.value = 'AI 분석 중... 🤖';
+        nameInput.classList.add('ai-loading-pulse');
+        nameInput.disabled = true;
+
+        try {
+            const base64Image = await compressImage(file, 800, 800);
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const promptText = `Analyze this food product image and identify its details. Today is ${todayStr}.
+Return the details strictly as a JSON object with the following fields:
+- name: Product name in Korean (e.g., '서울우유 1L', '코카콜라 355ml', '단호박'). Be specific yet concise.
+- category: Select one from: '채소/과일', '육류/해산물', '유제품', '가공식품', '음료', '기타'.
+- storageType: Select one from: '냉장', '냉동', '실온'.
+- expiryDate: Recommended expiration date (YYYY-MM-DD). If an expiration date or manufacturing date is visible in the image, parse it and calculate/use the expiration date. Otherwise, estimate a typical shelf life from today (${todayStr}) for this category of product.
+
+Do not include any markdown styling like \`\`\`json or \`\`\`, just return the raw JSON string.`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: promptText },
+                            {
+                                inlineData: {
+                                    mimeType: 'image/jpeg',
+                                    data: base64Image
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: 'application/json'
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'API request failed');
+            }
+
+            const data = await response.json();
+            const textResponse = data.candidates[0].content.parts[0].text;
+            
+            let cleanJson = textResponse.trim();
+            if (cleanJson.startsWith('```')) {
+                cleanJson = cleanJson.replace(/^```json/, '').replace(/```$/, '').trim();
+            }
+
+            const product = JSON.parse(cleanJson);
+
+            nameInput.classList.remove('ai-loading-pulse');
+            nameInput.disabled = false;
+
+            if (product && product.name) {
+                nameInput.value = product.name;
+                categorySelect.value = product.category || '기타';
+                storageSelect.value = product.storageType || '냉장';
+                if (product.expiryDate) {
+                    expiryInput.value = product.expiryDate;
+                }
+            } else {
+                throw new Error('AI 응답 데이터 분석 불가');
+            }
+        } catch (error) {
+            console.error('AI 분석 오류:', error);
+            nameInput.classList.remove('ai-loading-pulse');
+            nameInput.disabled = false;
+            nameInput.value = '';
+            nameInput.placeholder = originalPlaceholder;
+            alert(`AI 제품 인식에 실패했습니다.\n오류: ${error.message}\nAPI 키를 확인하거나 제품 정면이 선명하게 보이도록 다시 촬영해보세요.`);
+        }
+    }
+
+    // ============================================================
+    // Gemini AI 레시피 추천 연동 (냉장고 파먹기)
+    // ============================================================
+    async function getAIRecipes() {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            alert('AI 맞춤 레시피를 추천받으려면 우측 상단 설정(⚙️)에서 Gemini API 키를 먼저 등록해주세요.');
+            settingsModal.style.display = 'flex';
+            return;
+        }
+
+        if (inventory.length === 0) {
+            alert('냉장고에 재료가 없어요! 재료를 먼저 등록해주세요.');
+            return;
+        }
+
+        const aiRecipeBtn = document.getElementById('ai-recipe-btn');
+        const originalText = aiRecipeBtn.innerHTML;
+        aiRecipeBtn.innerHTML = '🍳 AI가 생각 중...';
+        aiRecipeBtn.disabled = true;
+
+        try {
+            const itemsList = inventory.map(i => `${i.name}(카테고리:${i.category}, 보관:${i.storageType}, 남은기한:${calculateDDay(i.expiryDate)}일)`).join(', ');
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const recipePrompt = `I have the following ingredients in my refrigerator: ${itemsList}. Today's date is ${todayStr}.
+Please recommend 3 realistic Korean dishes that I can make using these ingredients, prioritizing items that are expiring soon.
+For each dish, provide:
+1. title: Title of the dish (Korean)
+2. desc: A short description of the dish
+3. needed: List of ingredients from the fridge that will be used
+4. extra: Any common seasonings or ingredients needed that might not be in the list
+5. steps: Step-by-step cooking instructions (an array of strings)
+
+Respond ONLY with a JSON array of objects containing these fields (title, desc, needed, extra, steps) with no markdown formatting or extra text.`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: recipePrompt }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: 'application/json'
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'API request failed');
+            }
+
+            const data = await response.json();
+            const textResponse = data.candidates[0].content.parts[0].text;
+            
+            let cleanJson = textResponse.trim();
+            if (cleanJson.startsWith('```')) {
+                cleanJson = cleanJson.replace(/^```json/, '').replace(/```$/, '').trim();
+            }
+
+            const recipes = JSON.parse(cleanJson);
+            renderAIRecipes(recipes);
+        } catch (error) {
+            console.error('AI 레시피 오류:', error);
+            alert(`AI 레시피 생성에 실패했습니다.\n오류: ${error.message}`);
+        } finally {
+            aiRecipeBtn.innerHTML = originalText;
+            aiRecipeBtn.disabled = false;
+        }
+    }
+
+    function renderAIRecipes(recipes) {
+        recipeSection.style.display = 'block';
+        recipeList.innerHTML = '';
+
+        recipes.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'recipe-card';
+            div.style.borderLeftColor = '#6366F1';
+            div.onclick = () => showRecipeDetail(r);
+            div.innerHTML = `
+                <h4 style="color: #6366F1;">✨ ${r.title}</h4>
+                <p>${r.desc}</p>
+                <span class="youtube-tag" style="color: #6366F1;">📋 레시피 순서 보기</span>
+            `;
+            recipeList.appendChild(div);
+        });
+    }
+
+    function showRecipeDetail(recipe) {
+        document.getElementById('recipe-detail-title').innerText = recipe.title;
+
+        let stepsHtml = '';
+        if (recipe.steps && Array.isArray(recipe.steps)) {
+            stepsHtml = `<ol style="margin-left: 20px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #374151;">
+                ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+            </ol>`;
+        } else {
+            stepsHtml = `<p style="margin-top: 10px; font-size: 0.88rem;">${recipe.desc}</p>`;
+        }
+
+        const content = `
+            <div style="margin-bottom: 16px;">
+                <p style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">📍 요리 소개</p>
+                <p style="background: #F3F4F6; padding: 12px; border-radius: 8px; font-size: 0.88rem; line-height: 1.5; font-weight: 500;">${recipe.desc}</p>
+            </div>
+            <div style="margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: #EEF2F6; padding: 12px; border-radius: 8px; border: 1px solid #DBEAFE;">
+                    <p style="font-weight: 800; color: #1E3A8A; font-size: 0.78rem; margin-bottom: 4px;">🧺 내 냉장고 재료</p>
+                    <p style="font-size: 0.82rem; color: #1E40AF; line-height: 1.4;">${recipe.needed}</p>
+                </div>
+                <div style="background: #FFFBEB; padding: 12px; border-radius: 8px; border: 1px solid #FEF3C7;">
+                    <p style="font-weight: 800; color: #78350F; font-size: 0.78rem; margin-bottom: 4px;">🧂 필요한 추가 재료</p>
+                    <p style="font-size: 0.82rem; color: #92400E; line-height: 1.4;">${recipe.extra}</p>
+                </div>
+            </div>
+            <div>
+                <p style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">🍳 조리 순서</p>
+                ${stepsHtml}
+            </div>
+            <button onclick="window.open('https://www.youtube.com/results?search_query=${recipe.title}+레시피', '_blank')" 
+                    style="width: 100%; margin-top: 20px; padding: 12px; border: none; background: #EF4444; color: white; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+                ▶ 유튜브 동영상 레시피 검색
+            </button>
+        `;
+
+        document.getElementById('recipe-detail-content').innerHTML = content;
+        document.getElementById('recipe-detail-modal').style.display = 'flex';
+    }
+
+    document.getElementById('close-recipe-detail-modal').onclick = () => {
+        document.getElementById('recipe-detail-modal').style.display = 'none';
+    };
 </script>
 </body>
 </html>
