@@ -53,7 +53,8 @@
             color: var(--text-main);
             line-height: 1.5;
             padding: 20px 15px;
-            padding-bottom: 100px;
+            padding-bottom: calc(100px + env(safe-area-inset-bottom));
+            padding-top: calc(20px + env(safe-area-inset-top));
             min-height: 100vh;
         }
 
@@ -214,6 +215,7 @@
             overflow-x: auto;
             padding: 4px 0 10px 0;
             scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         .recipe-container::-webkit-scrollbar { display: none; }
@@ -285,7 +287,7 @@
             box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
         }
 
-        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .filter-tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
@@ -314,12 +316,14 @@
             gap: 8px;
         }
 
+        /* 반응형 모바일 최적화 카드 레이아웃 */
         .food-card {
             background: var(--card-bg);
             padding: 14px 16px;
             border-radius: var(--radius-md);
             border: 1px solid rgba(255, 255, 255, 0.5);
             display: flex;
+            justify-content: space-between;
             align-items: center;
             gap: 12px;
             box-shadow: var(--shadow-sm);
@@ -337,6 +341,21 @@
             background-color: rgba(254, 226, 226, 0.3);
         }
 
+        .food-card-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .food-card-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
         .dday-badge {
             min-width: 48px;
             text-align: center;
@@ -349,6 +368,7 @@
             line-height: 1.2;
             box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
             font-family: 'Outfit', sans-serif;
+            flex-shrink: 0;
         }
 
         .dday-badge.urgent {
@@ -382,8 +402,6 @@
             margin-top: 3px;
             font-weight: 500;
         }
-
-        .food-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
         .quantity-control {
             display: flex;
@@ -442,9 +460,21 @@
         .save-btn:hover { background: var(--primary-dark); }
         .cancel-btn { background: var(--text-muted); color: white; border: none; }
         
-        /* 인라인 수정 폼 */
-        .inline-edit-form { width: 100%; }
-        .inline-edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        /* 인라인 수정 폼 모바일 최적화 */
+        .inline-edit-form { 
+            width: 100%; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .inline-edit-row { display: flex; gap: 8px; width: 100%; }
+        .inline-edit-row label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
         
         .inline-edit-form input, 
         .inline-edit-form select { 
@@ -454,15 +484,17 @@
             border: 1px solid var(--border-color); 
             width: 100%; 
             outline: none;
+            background: #F9FAFB;
         }
 
         .inline-edit-form input:focus,
         .inline-edit-form select:focus {
             border-color: var(--primary-color);
+            background: white;
         }
 
-        .card-actions { display: flex; gap: 6px; }
-        .card-actions .action-btn { flex: 1; padding: 8px; font-size: 0.8rem; text-align: center; }
+        .card-actions { display: flex; gap: 6px; width: 100%; }
+        .card-actions .action-btn { flex: 1; padding: 10px; font-size: 0.8rem; text-align: center; }
 
         .fab {
             position: fixed;
@@ -488,14 +520,14 @@
             box-shadow: 0 12px 30px rgba(16,185,129,0.5);
         }
 
-        /* 모달 스타일 */
+        /* 모달 스타일 및 iOS 키보드 밀림 대응 */
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100dvh;
             background: rgba(15, 23, 42, 0.6);
             z-index: 1000;
             justify-content: center;
@@ -513,6 +545,8 @@
             box-shadow: var(--shadow-lg);
             border: 1px solid rgba(255,255,255,0.8);
             position: relative;
+            max-height: 90dvh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -658,6 +692,97 @@
             animation: pulse 1.5s infinite ease-in-out;
             color: #4F46E5 !important;
             font-weight: bold;
+        }
+
+        /* -----------------------------------------
+           아이폰/모바일 화면 최적화 미디어 쿼리
+        ----------------------------------------- */
+        @media (max-width: 520px) {
+            body {
+                padding: 12px 10px;
+                padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            }
+            
+            header {
+                padding: 18px 16px;
+                margin-bottom: 16px;
+                border-radius: var(--radius-md);
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .settings-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+
+            .summary-widgets {
+                gap: 8px;
+            }
+
+            .widget {
+                padding: 10px 6px;
+            }
+
+            .widget-value {
+                font-size: 1.3rem;
+            }
+
+            #recipe-section {
+                padding: 16px 12px;
+                border-radius: var(--radius-md);
+                margin-bottom: 16px;
+            }
+
+            /* 모바일에서 카드 상/하 2단 구조 배치 */
+            .food-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+
+            .food-card-left {
+                width: 100%;
+            }
+
+            .food-card-right {
+                width: 100%;
+                justify-content: space-between;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+                padding-top: 8px;
+            }
+
+            .food-name {
+                font-size: 0.92rem;
+            }
+
+            .food-sub {
+                font-size: 0.75rem;
+            }
+
+            .quantity-control {
+                padding: 2px 4px;
+            }
+
+            .q-btn {
+                width: 22px;
+                height: 22px;
+                font-size: 0.8rem;
+            }
+
+            .action-btn {
+                padding: 5px 10px;
+                font-size: 0.7rem;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                max-height: 85dvh;
+            }
         }
 
         /* 스크롤바 커스텀 */
@@ -992,18 +1117,30 @@
                 card.innerHTML = `
                     <div class="inline-edit-form">
                         <div class="inline-edit-row">
-                            <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="식품명">
-                            <select id="edit-stor-${item.id}" style="min-width:70px">
-                                ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
-                            </select>
+                            <div style="flex: 2; min-width: 0;">
+                                <label>식품명</label>
+                                <input type="text" id="edit-name-${item.id}" value="${item.name}">
+                            </div>
+                            <div style="flex: 1;">
+                                <label>보관</label>
+                                <select id="edit-stor-${item.id}">
+                                    ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
                         <div class="inline-edit-row">
-                            <select id="edit-cat-${item.id}">
-                                ${['채소/과일','육류/해산물','유제품','가공식품','음료','기타'].map(c => `<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
-                            </select>
-                            <input type="date" id="edit-date-${item.id}" value="${item.expiryDate}">
+                            <div style="flex: 1;">
+                                <label>카테고리</label>
+                                <select id="edit-cat-${item.id}">
+                                    ${['채소/과일','육류/해산물','유제품','가공식품','음료','기타'].map(c => `<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="flex: 1.2;">
+                                <label>유통기한</label>
+                                <input type="date" id="edit-date-${item.id}" value="${item.expiryDate}">
+                            </div>
                         </div>
-                        <div class="card-actions">
+                        <div class="card-actions" style="margin-top: 4px;">
                             <button class="action-btn save-btn" onclick="saveEdit('${item.id}')">저장</button>
                             <button class="action-btn cancel-btn" onclick="cancelEdit()">취소</button>
                         </div>
@@ -1025,12 +1162,14 @@
                 const emoji = getCategoryEmoji(item.category);
 
                 card.innerHTML = `
-                    <div class="${badgeClass}">${dDayText}</div>
-                    <div class="food-main">
-                        <div class="food-name">${emoji} ${item.name}</div>
-                        <div class="food-sub">${item.category} · ${item.storageType} · ${item.expiryDate}</div>
+                    <div class="food-card-left">
+                        <div class="${badgeClass}">${dDayText}</div>
+                        <div class="food-main">
+                            <div class="food-name">${emoji} ${item.name}</div>
+                            <div class="food-sub">${item.category} · ${item.storageType} · ${item.expiryDate}</div>
+                        </div>
                     </div>
-                    <div class="food-right">
+                    <div class="food-card-right">
                         <div class="quantity-control">
                             <button class="q-btn" onclick="updateQty('${item.id}',-1)">−</button>
                             <span class="qty-num">${item.quantity}</span>
@@ -1076,6 +1215,7 @@
             expiryDate: document.getElementById(`edit-date-${id}`).value
         });
         editingId = null;
+        renderInventory(); // 저장 즉시 수정모드 해제 및 리렌더링
     }
 
     async function deleteItem(id) {
