@@ -60,13 +60,14 @@
 
         .container { max-width: 650px; margin: 0 auto; }
 
+        /* 헤더 컴팩트화 */
         header {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             background: linear-gradient(135deg, #0f766e, #0d9488);
-            padding: 24px 20px;
+            padding: 16px 20px;
             border-radius: var(--radius-lg);
             color: white;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
         }
@@ -86,14 +87,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
             z-index: 1;
             position: relative;
         }
 
         h1 {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.85rem;
+            font-size: 1.6rem;
             font-weight: 800;
             letter-spacing: -1px;
             display: flex;
@@ -101,17 +101,48 @@
             gap: 8px;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 미니 통계 뱃지 */
+        .mini-badge {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .mini-badge span {
+            font-weight: 800;
+        }
+
+        .mini-badge.urgent {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
         .settings-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             backdrop-filter: blur(4px);
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
@@ -122,59 +153,26 @@
             background: rgba(255, 255, 255, 0.35);
         }
 
-        .summary-widgets {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .widget {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            padding: 14px;
-            border-radius: var(--radius-md);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.2s;
-        }
-
-        .widget:active {
-            transform: scale(0.98);
-        }
-
-        .widget-label {
-            font-size: 0.78rem;
-            color: rgba(255, 255, 255, 0.85);
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .widget-value {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
-
+        /* 아코디언 스타일 접이식 레시피 섹션 */
         #recipe-section {
-            margin-bottom: 25px;
+            margin-bottom: 18px;
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
             border: 1px solid rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
         }
 
         .recipe-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+            width: 100%;
         }
 
         .recipe-title {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 800;
             color: var(--text-main);
             display: flex;
@@ -182,16 +180,23 @@
             gap: 6px;
         }
 
+        .recipe-arrow {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+
         .ai-recipe-btn {
             background: linear-gradient(135deg, #6366F1, #4F46E5);
             color: white;
             border: none;
-            padding: 7px 14px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             font-weight: 700;
             cursor: pointer;
-            display: flex;
+            display: none; /* 접혀있을 때는 숨김 */
             align-items: center;
             gap: 6px;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
@@ -209,11 +214,17 @@
             box-shadow: none;
         }
 
+        .recipe-content-wrapper {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .recipe-container {
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            padding: 4px 0 10px 0;
+            padding: 14px 0 6px 0;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
         }
@@ -460,6 +471,10 @@
         .save-btn:hover { background: var(--primary-dark); }
         .cancel-btn { background: var(--text-muted); color: white; border: none; }
         
+        /* 모바일 아이콘 텍스트 분기 처리용 */
+        .btn-icon { display: none; }
+        .btn-text { display: inline; }
+
         /* 인라인 수정 폼 모바일 최적화 */
         .inline-edit-form { 
             width: 100%; 
@@ -704,79 +719,106 @@
             }
             
             header {
-                padding: 18px 16px;
-                margin-bottom: 16px;
+                padding: 12px 16px;
+                margin-bottom: 12px;
                 border-radius: var(--radius-md);
             }
 
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.35rem;
             }
 
             .settings-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 1.1rem;
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
             }
 
-            .summary-widgets {
-                gap: 8px;
-            }
-
-            .widget {
-                padding: 10px 6px;
-            }
-
-            .widget-value {
-                font-size: 1.3rem;
+            .mini-badge {
+                padding: 4px 8px;
+                font-size: 0.72rem;
             }
 
             #recipe-section {
-                padding: 16px 12px;
+                padding: 10px 14px;
                 border-radius: var(--radius-md);
-                margin-bottom: 16px;
+                margin-bottom: 12px;
             }
 
-            /* 모바일에서 카드 상/하 2단 구조 배치 */
+            /* 모바일에서 완전히 컴팩트한 단일 행(한줄) 레이아웃으로 변경 */
             .food-card {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-                padding: 12px 14px;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 8px;
+                gap: 6px;
             }
 
             .food-card-left {
-                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex: 1;
+                min-width: 0;
             }
 
             .food-card-right {
-                width: 100%;
-                justify-content: space-between;
-                border-top: 1px solid rgba(0, 0, 0, 0.05);
-                padding-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
+            .dday-badge {
+                min-width: 38px;
+                font-size: 0.62rem;
+                padding: 4px 2px;
+                border-radius: 8px;
             }
 
             .food-name {
-                font-size: 0.92rem;
+                font-size: 0.82rem;
+                gap: 2px;
             }
 
             .food-sub {
-                font-size: 0.75rem;
+                font-size: 0.68rem;
+                margin-top: 1px;
             }
 
             .quantity-control {
                 padding: 2px 4px;
+                gap: 4px;
             }
 
             .q-btn {
-                width: 22px;
-                height: 22px;
-                font-size: 0.8rem;
+                width: 18px;
+                height: 18px;
+                font-size: 0.75rem;
+                box-shadow: none;
+            }
+
+            .qty-num {
+                font-size: 0.78rem;
+                min-width: 12px;
+            }
+
+            .food-actions {
+                gap: 3px;
+            }
+
+            /* 버튼 텍스트 대신 이모지 아이콘만 표시 */
+            .btn-icon {
+                display: inline;
+            }
+            .btn-text {
+                display: none;
             }
 
             .action-btn {
-                padding: 5px 10px;
-                font-size: 0.7rem;
+                padding: 5px 6px;
+                font-size: 0.72rem;
+                border-radius: 6px;
             }
             
             .modal-content {
@@ -807,29 +849,40 @@
 <div class="container">
     <header>
         <div class="header-top">
-            <h1>🧊 범초냉장고</h1>
-            <button id="open-settings-btn" class="settings-btn" title="설정">⚙️</button>
-        </div>
-        <div class="summary-widgets">
-            <div class="widget">
-                <div class="widget-label">전체 재고</div>
-                <div id="total-count" class="widget-value">0</div>
-            </div>
-            <div class="widget">
-                <div class="widget-label">유통기한 임박</div>
-                <div id="near-expiry-count" class="widget-value">0</div>
+            <h1>
+                <!-- 냉장고 SVG 아이콘 -->
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block;">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="5" y1="9" x2="19" y2="9" />
+                    <line x1="8" y1="5" x2="8" y2="7" />
+                    <line x1="8" y1="12" x2="8" y2="16" />
+                </svg>
+                범초냉장고
+            </h1>
+            <div class="header-right">
+                <div class="mini-badge" title="전체 재고">재고 <span id="total-count">0</span></div>
+                <div class="mini-badge urgent" id="near-expiry-badge" title="유통기한 임박" style="display: none;">주의 <span id="near-expiry-count">0</span></div>
+                <button id="open-settings-btn" class="settings-btn" title="설정">⚙️</button>
             </div>
         </div>
     </header>
 
+    <!-- 접이식 레시피 섹션 -->
     <section id="recipe-section">
-        <div class="recipe-header">
-            <div class="recipe-title">👨‍🍳 남은 재료 활용 레시피</div>
-            <button id="ai-recipe-btn" class="ai-recipe-btn" onclick="getAIRecipes()">
-                ✨ AI 맞춤 추천
-            </button>
+        <div class="recipe-header" id="toggle-recipe-btn" style="cursor: pointer; user-select: none; width: 100%;">
+            <div class="recipe-title">
+                <span>👨‍🍳 남은 재료 레시피 추천</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="ai-recipe-btn" class="ai-recipe-btn" onclick="getAIRecipes(event)">
+                    ✨ AI 맞춤 추천
+                </button>
+                <span class="recipe-arrow" id="recipe-arrow">▶</span>
+            </div>
         </div>
-        <div id="recipe-list" class="recipe-container"></div>
+        <div class="recipe-content-wrapper" id="recipe-content-wrapper">
+            <div id="recipe-list" class="recipe-container"></div>
+        </div>
     </section>
 
     <div class="list-controls">
@@ -989,6 +1042,12 @@
     const geminiApiKeyInput = document.getElementById('gemini-api-key');
     const saveSettingsBtn = document.getElementById('save-settings-btn');
 
+    // 접이식 레시피 관련 엘리먼트
+    const toggleRecipeBtn = document.getElementById('toggle-recipe-btn');
+    const recipeContentWrapper = document.getElementById('recipe-content-wrapper');
+    const recipeArrow = document.getElementById('recipe-arrow');
+    const aiRecipeBtn = document.getElementById('ai-recipe-btn');
+
     const RECIPE_DATA = {
         '채소/과일': [
             { title: '야채 볶음밥', desc: '자투리 채소를 잘게 썰어 기름에 볶아주세요.' },
@@ -1047,39 +1106,34 @@
     function updateSummary() {
         document.getElementById('total-count').textContent = inventory.length;
         const nearExpiry = inventory.filter(i => calculateDDay(i.expiryDate) <= 3);
-        document.getElementById('near-expiry-count').textContent = nearExpiry.length;
+        const nearExpiryCount = nearExpiry.length;
+        document.getElementById('near-expiry-count').textContent = nearExpiryCount;
+
+        const nearExpiryBadge = document.getElementById('near-expiry-badge');
+        if (nearExpiryCount > 0) {
+            nearExpiryBadge.style.display = 'flex';
+        } else {
+            nearExpiryBadge.style.display = 'none';
+        }
+
         updateRecipes(nearExpiry);
     }
 
     function updateRecipes(nearExpiryItems) {
-        if (nearExpiryItems.length === 0) { 
-            // 임박 재료가 없더라도 전체 레시피를 보려면 빈 화면 대신 가공식품 등 기본 노출
-            recipeSection.style.display = 'block';
-            recipeList.innerHTML = '';
-            
-            const defaultRecipes = [
+        recipeList.innerHTML = '';
+        
+        let recipesToShow = [];
+        if (nearExpiryItems.length === 0) {
+            recipesToShow = [
                 { title: '계란 볶음밥', desc: '파기름에 밥과 계란만 풀어 볶아보세요.' },
                 { title: '참치 김치찌개', desc: '김치와 참치캔을 넣어 시원하게 끓여냅니다.' }
             ];
-            
-            defaultRecipes.forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'recipe-card';
-                div.onclick = () => window.open(`https://www.youtube.com/results?search_query=${r.title}+레시피`, '_blank');
-                div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p><span class="youtube-tag">▶ 유튜브에서 보기</span>`;
-                recipeList.appendChild(div);
-            });
-            return; 
-        }
-        
-        recipeSection.style.display = 'block';
-        recipeList.innerHTML = '';
-        const categories = [...new Set(nearExpiryItems.map(i => i.category))];
-        let recipesToShow = [];
-        categories.forEach(cat => { if (RECIPE_DATA[cat]) recipesToShow = [...recipesToShow, ...RECIPE_DATA[cat]]; });
-        
-        if (recipesToShow.length === 0) {
-            recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료를 모아 맛있는 한 끼를 만들어보세요!' });
+        } else {
+            const categories = [...new Set(nearExpiryItems.map(i => i.category))];
+            categories.forEach(cat => { if (RECIPE_DATA[cat]) recipesToShow = [...recipesToShow, ...RECIPE_DATA[cat]]; });
+            if (recipesToShow.length === 0) {
+                recipesToShow.push({ title: '오늘의 요리', desc: '임박한 재료를 모아 맛있는 한 끼를 만들어보세요!' });
+            }
         }
         
         recipesToShow.forEach(r => {
@@ -1089,6 +1143,13 @@
             div.innerHTML = `<h4>${r.title}</h4><p>${r.desc}</p><span class="youtube-tag">▶ 유튜브에서 보기</span>`;
             recipeList.appendChild(div);
         });
+
+        // 레시피 목록이 갱신되었을 때, 펼쳐져 있는 상태라면 높이를 재조정합니다.
+        if (recipeContentWrapper.style.maxHeight && recipeContentWrapper.style.maxHeight !== '0px') {
+            setTimeout(() => {
+                recipeContentWrapper.style.maxHeight = recipeContentWrapper.scrollHeight + 'px';
+            }, 50);
+        }
     }
 
     function renderInventory() {
@@ -1141,8 +1202,8 @@
                             </div>
                         </div>
                         <div class="card-actions" style="margin-top: 4px;">
-                            <button class="action-btn save-btn" onclick="saveEdit('${item.id}')">저장</button>
-                            <button class="action-btn cancel-btn" onclick="cancelEdit()">취소</button>
+                            <button class="action-btn save-btn" onclick="saveEdit('${item.id}')"><span class="btn-text">저장</span><span class="btn-icon">💾</span></button>
+                            <button class="action-btn cancel-btn" onclick="cancelEdit()"><span class="btn-text">취소</span><span class="btn-icon">❌</span></button>
                         </div>
                     </div>`;
             } else {
@@ -1176,8 +1237,8 @@
                             <button class="q-btn" onclick="updateQty('${item.id}',1)">+</button>
                         </div>
                         <div class="food-actions">
-                            <button class="action-btn edit-btn" onclick="startEdit('${item.id}')">수정</button>
-                            <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')">삭제</button>
+                            <button class="action-btn edit-btn" onclick="startEdit('${item.id}')"><span class="btn-text">수정</span><span class="btn-icon">✏️</span></button>
+                            <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')"><span class="btn-text">삭제</span><span class="btn-icon">🗑️</span></button>
                         </div>
                     </div>`;
             }
@@ -1215,7 +1276,7 @@
             expiryDate: document.getElementById(`edit-date-${id}`).value
         });
         editingId = null;
-        renderInventory(); // 저장 즉시 수정모드 해제 및 리렌더링
+        renderInventory();
     }
 
     async function deleteItem(id) {
@@ -1253,6 +1314,22 @@
             renderInventory();
         };
     });
+
+    // 레시피 접기/펴기 (아코디언 토글)
+    toggleRecipeBtn.onclick = (e) => {
+        if (e.target.closest('#ai-recipe-btn')) return; // AI 추천 버튼 클릭 시 토글 방지
+
+        const isCollapsed = recipeContentWrapper.style.maxHeight === '0px' || !recipeContentWrapper.style.maxHeight || recipeContentWrapper.style.maxHeight === '0';
+        if (isCollapsed) {
+            recipeContentWrapper.style.maxHeight = recipeContentWrapper.scrollHeight + 'px';
+            recipeArrow.style.transform = 'rotate(90deg)';
+            aiRecipeBtn.style.display = 'flex';
+        } else {
+            recipeContentWrapper.style.maxHeight = '0px';
+            recipeArrow.style.transform = 'rotate(0deg)';
+            aiRecipeBtn.style.display = 'none';
+        }
+    };
 
     // 설정 모달 열기/닫기
     openSettingsBtn.onclick = () => {
@@ -1519,7 +1596,9 @@ Do not include any markdown styling like \`\`\`json or \`\`\`, just return the r
     // ============================================================
     // Gemini AI 레시피 추천 연동 (냉장고 파먹기)
     // ============================================================
-    async function getAIRecipes() {
+    async function getAIRecipes(event) {
+        event.stopPropagation(); // 아코디언 토글 방지
+
         const apiKey = localStorage.getItem('gemini_api_key');
         if (!apiKey) {
             alert('AI 맞춤 레시피를 추천받으려면 우측 상단 설정(⚙️)에서 Gemini API 키를 먼저 등록해주세요.');
@@ -1534,7 +1613,7 @@ Do not include any markdown styling like \`\`\`json or \`\`\`, just return the r
 
         const aiRecipeBtn = document.getElementById('ai-recipe-btn');
         const originalText = aiRecipeBtn.innerHTML;
-        aiRecipeBtn.innerHTML = '🍳 AI가 생각 중...';
+        aiRecipeBtn.innerHTML = '🍳 AI 생각 중...';
         aiRecipeBtn.disabled = true;
 
         try {
@@ -1592,7 +1671,6 @@ Respond ONLY with a JSON array of objects containing these fields (title, desc, 
     }
 
     function renderAIRecipes(recipes) {
-        recipeSection.style.display = 'block';
         recipeList.innerHTML = '';
 
         recipes.forEach(r => {
@@ -1607,6 +1685,13 @@ Respond ONLY with a JSON array of objects containing these fields (title, desc, 
             `;
             recipeList.appendChild(div);
         });
+
+        // 레시피 목록이 갱신되었을 때, 펼쳐져 있는 상태라면 높이를 재조정합니다.
+        if (recipeContentWrapper.style.maxHeight && recipeContentWrapper.style.maxHeight !== '0px') {
+            setTimeout(() => {
+                recipeContentWrapper.style.maxHeight = recipeContentWrapper.scrollHeight + 'px';
+            }, 50);
+        }
     }
 
     function showRecipeDetail(recipe) {
