@@ -429,35 +429,33 @@
     });
 
     // ============================================================
-    // 바코드 → 제품 정보 조회 (공공데이터포털 식품안전나라)
+    // 바코드 → 제품 정보 조회 (Open Food Facts - CORS 지원)
     // ============================================================
-    const API_KEY = '252af7493ac47eea056e5442f2e5e929f5da162acdd0cf04d9bd7beef5ac65a1';
-
-    function mapCategory(raw) {
-        if (!raw) return '기타';
-        if (raw.includes('채소') || raw.includes('과일') || raw.includes('농산')) return '채소/과일';
-        if (raw.includes('육') || raw.includes('고기') || raw.includes('수산') || raw.includes('해산') || raw.includes('어패')) return '육류/해산물';
-        if (raw.includes('유제품') || raw.includes('우유') || raw.includes('치즈') || raw.includes('유가공')) return '유제품';
-        if (raw.includes('음료') || raw.includes('주류') || raw.includes('차') || raw.includes('커피')) return '음료';
-        if (raw.includes('가공') || raw.includes('즉석') || raw.includes('면') || raw.includes('과자') || raw.includes('빵')) return '가공식품';
+    function mapCategory(tags) {
+        if (!tags || !Array.isArray(tags)) return '기타';
+        const joined = tags.join(' ');
+        if (/vegetable|fruit|produce|야채|채소|과일/.test(joined)) return '채소/과일';
+        if (/meat|fish|seafood|beef|pork|chicken|육류|고기|수산|해산/.test(joined)) return '육류/해산물';
+        if (/dairy|milk|cheese|yogurt|유제품|우유|치즈/.test(joined)) return '유제품';
+        if (/beverage|drink|juice|water|tea|coffee|음료|주류/.test(joined)) return '음료';
+        if (/snack|noodle|bread|processed|과자|면|빵|가공/.test(joined)) return '가공식품';
         return '기타';
     }
 
     async function fetchProductByBarcode(barcode) {
-        const url = `https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo01/getFoodNtrCpntDbInq01?serviceKey=${API_KEY}&pageNo=1&numOfRows=1&type=json&BARCD_NO=${barcode}`;
+        // Open Food Facts: CORS 허용, 전 세계 식품 DB
+        const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=product_name,product_name_ko,categories_tags`;
         try {
             const res = await fetch(url);
             const data = await res.json();
-            const items = data?.body?.items;
-            if (items && items.length > 0) {
-                const item = items[0];
-                return {
-                    name: item.PRDLST_NM || '',
-                    category: mapCategory(item.PRDLST_DCNM || item.BSSH_NM || '')
-                };
+            if (data.status === 1 && data.product) {
+                const p = data.product;
+                const name = p.product_name_ko || p.product_name || '';
+                const category = mapCategory(p.categories_tags);
+                if (name) return { name, category };
             }
         } catch (e) {
-            console.error('API 오류:', e);
+            console.error('Open Food Facts 오류:', e);
         }
         return null;
     }
@@ -467,34 +465,48 @@
     document.getElementById('scan-btn').onclick = () => {
         document.getElementById('scanner-modal').style.display = 'flex';
         html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (barcode) => {
-            closeScanner();
-            const nameInput = document.getElementById('food-name');
-            nameInput.value = '조회 중...';
-            nameInput.disabled = true;
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            async (barcode) => {
+                // 스캐너를 완전히 닫은 뒤 등록 모달 열기 (race condition 방지)
+                await closeScanner();
+                const nameInput = document.getElementById('food-name');
+                nameInput.value = '조회 중...';
+                nameInput.disabled = true;
+                regModal.style.display = 'flex';
 
-            const product = await fetchProductByBarcode(barcode);
+                const product = await fetchProductByBarcode(barcode);
 
-            nameInput.disabled = false;
-            regModal.style.display = 'flex';
-
-            if (product && product.name) {
-                nameInput.value = product.name;
-                document.getElementById('food-category').value = product.category;
-            } else {
-                nameInput.value = '';
-                nameInput.placeholder = '제품을 찾지 못했어요. 직접 입력해주세요.';
-                alert(`바코드(${barcode})\n제품 정보를 찾지 못했어요. 직접 입력해주세요!`);
+                nameInput.disabled = false;
+                if (product && product.name) {
+                    nameInput.value = product.name;
+                    document.getElementById('food-category').value = product.category;
+                } else {
+                    nameInput.value = '';
+                    nameInput.placeholder = '제품을 찾지 못했어요. 직접 입력해주세요.';
+                    alert(`바코드(${barcode})\n제품 정보를 찾지 못했어요. 직접 입력해주세요!`);
+                }
             }
-        }).catch(() => { alert('카메라 권한을 허용해주세요.'); closeScanner(); });
+        ).catch(() => { alert('카메라 권한을 허용해주세요.'); closeScanner(); });
     };
 
     function closeScanner() {
-        if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => { html5QrCode.clear(); document.getElementById('scanner-modal').style.display = 'none'; });
-        } else {
-            document.getElementById('scanner-modal').style.display = 'none';
-        }
+        return new Promise((resolve) => {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    document.getElementById('scanner-modal').style.display = 'none';
+                    resolve();
+                }).catch(() => {
+                    document.getElementById('scanner-modal').style.display = 'none';
+                    resolve();
+                });
+            } else {
+                document.getElementById('scanner-modal').style.display = 'none';
+                resolve();
+            }
+        });
     }
     document.getElementById('close-scanner').onclick = closeScanner;
 </script>
