@@ -471,6 +471,8 @@
         .edit-btn:hover { background: var(--primary-light); }
         .delete-btn { border: 1px solid var(--danger-color); color: var(--danger-color); background: white; }
         .delete-btn:hover { background: var(--danger-light); }
+        .tip-btn { border: 1px solid var(--warning-color); color: #D97706; background: white; }
+        .tip-btn:hover { background: #FEF3C7; }
         .save-btn { background: var(--primary-color); color: white; border: none; }
         .save-btn:hover { background: var(--primary-dark); }
         .cancel-btn { background: var(--text-muted); color: white; border: none; }
@@ -862,6 +864,67 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #9CA3AF;
         }
+
+        /* 보관 위치별 색상 테마 */
+        .storage-badge {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .storage-refrigerated {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #BFDBFE;
+        }
+        .storage-frozen {
+            background-color: #E0F2FE;
+            color: #0369A1;
+            border: 1px solid #BAE6FD;
+        }
+        .storage-room {
+            background-color: #FFEDD5;
+            color: #C2410C;
+            border: 1px solid #FED7AA;
+        }
+
+        /* 셀렉트 박스 보관 위치별 스타일 */
+        select.select-refrigerated {
+            background-color: #EBF8FF;
+            color: #2B6CB0;
+            border-color: #BEE3F8;
+        }
+        select.select-frozen {
+            background-color: #F0F9FF;
+            color: #0284C7;
+            border-color: #BAE6FD;
+        }
+        select.select-room {
+            background-color: #FFFAF0;
+            color: #DD6B20;
+            border-color: #FFE3C3;
+        }
+
+        /* 활성 필터 탭 개별 테마 색상 */
+        .tab-btn[data-filter="냉장"].active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: white;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+        }
+        .tab-btn[data-filter="냉동"].active {
+            background: #0EA5E9;
+            border-color: #0EA5E9;
+            color: white;
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25);
+        }
+        .tab-btn[data-filter="실온"].active {
+            background: #F97316;
+            border-color: #F97316;
+            color: white;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -934,8 +997,8 @@
                     <input type="text" id="food-name" placeholder="무엇을 넣으실 건가요?" required>
                     <button type="button" id="ai-btn" class="scan-btn" title="AI 사진 인식">🤖 AI 인식</button>
                 </div>
-                <!-- 숨겨진 파일 인풋 (카메라 촬영) -->
-                <input type="file" id="ai-photo-input" accept="image/*" capture="environment" style="display: none;">
+                <!-- 숨겨진 파일 인풋 (여러 사진 가능하게 capture 제거, multiple 추가) -->
+                <input type="file" id="ai-photo-input" accept="image/*" multiple style="display: none;">
             </div>
             <div class="form-group">
                 <label>카테고리</label>
@@ -955,7 +1018,7 @@
                 </div>
                 <div class="form-group">
                     <label>보관 장소</label>
-                    <select id="storage-type">
+                    <select id="storage-type" class="select-refrigerated" onchange="updateSelectColor(this)">
                         <option>냉장</option>
                         <option>냉동</option>
                         <option>실온</option>
@@ -998,6 +1061,19 @@
             <span class="close-modal" id="close-recipe-detail-modal">&times;</span>
         </div>
         <div id="recipe-detail-content">
+            <!-- 동적 삽입 -->
+        </div>
+    </div>
+</div>
+
+<!-- 보관 팁 상세 정보 모달 -->
+<div id="tip-modal" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3 id="tip-modal-title">💡 보관 꿀팁</h3>
+            <span class="close-modal" id="close-tip-modal">&times;</span>
+        </div>
+        <div id="tip-modal-content" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
             <!-- 동적 삽입 -->
         </div>
     </div>
@@ -1083,9 +1159,28 @@
         updateSummary();
     });
 
+    // 보관 위치 선택 시 색상 테마 변경 함수
+    function updateSelectColor(selectElement) {
+        if (!selectElement) return;
+        const val = selectElement.value;
+        selectElement.classList.remove('select-refrigerated', 'select-frozen', 'select-room');
+        if (val === '냉장') {
+            selectElement.classList.add('select-refrigerated');
+        } else if (val === '냉동') {
+            selectElement.classList.add('select-frozen');
+        } else if (val === '실온') {
+            selectElement.classList.add('select-room');
+        }
+    }
+
     // 앱 초기화 및 등록모달 열기 시 오늘 날짜로 유통기한 기본값 설정
     function setDefaultExpiryDate() {
         document.getElementById('expiry-date').valueAsDate = new Date();
+        const storageSelect = document.getElementById('storage-type');
+        if (storageSelect) {
+            storageSelect.value = '냉장';
+            updateSelectColor(storageSelect);
+        }
     }
     setDefaultExpiryDate();
 
@@ -1192,7 +1287,7 @@
                             </div>
                             <div style="flex: 1;">
                                 <label>보관</label>
-                                <select id="edit-stor-${item.id}">
+                                <select id="edit-stor-${item.id}" class="${item.storageType === '냉장' ? 'select-refrigerated' : item.storageType === '냉동' ? 'select-frozen' : 'select-room'}" onchange="updateSelectColor(this)">
                                     ${['냉장','냉동','실온'].map(s => `<option ${s===item.storageType?'selected':''}>${s}</option>`).join('')}
                                 </select>
                             </div>
@@ -1235,7 +1330,7 @@
                         <div class="${badgeClass}">${dDayText}</div>
                         <div class="food-main">
                             <div class="food-name">${emoji} ${item.name}</div>
-                            <div class="food-sub">${item.category} · ${item.storageType} · ${item.expiryDate}</div>
+                            <div class="food-sub">${item.category} · <span class="storage-badge ${item.storageType === '냉장' ? 'storage-refrigerated' : item.storageType === '냉동' ? 'storage-frozen' : 'storage-room'}">${item.storageType}</span> · ${item.expiryDate}</div>
                         </div>
                     </div>
                     <div class="food-card-right">
@@ -1245,6 +1340,7 @@
                             <button class="q-btn" onclick="updateQty('${item.id}',1)">+</button>
                         </div>
                         <div class="food-actions">
+                            <button class="action-btn tip-btn" onclick="showStorageTip('${item.name}', '${item.category}')" title="보관법"><span class="btn-text">보관법</span><span class="btn-icon">💡</span></button>
                             <button class="action-btn edit-btn" onclick="startEdit('${item.id}')"><span class="btn-text">수정</span><span class="btn-icon">✏️</span></button>
                             <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')"><span class="btn-text">삭제</span><span class="btn-icon">🗑️</span></button>
                         </div>
@@ -1362,6 +1458,9 @@
         if (event.target === document.getElementById('recipe-detail-modal')) {
             document.getElementById('recipe-detail-modal').style.display = 'none';
         }
+        if (event.target === document.getElementById('tip-modal')) {
+            document.getElementById('tip-modal').style.display = 'none';
+        }
     };
 
     // ============================================================
@@ -1423,14 +1522,14 @@
     };
 
     aiPhotoInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            await analyzeProductWithAI(file);
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            await analyzeProductWithAI(files);
         }
         aiPhotoInput.value = ''; // 재입력 가능하도록 초기화
     };
 
-    async function analyzeProductWithAI(file) {
+    async function analyzeProductWithAI(files) {
         const apiKey = localStorage.getItem('gemini_api_key');
         const nameInput = document.getElementById('food-name');
         const categorySelect = document.getElementById('food-category');
@@ -1438,22 +1537,32 @@
         const expiryInput = document.getElementById('expiry-date');
 
         const originalPlaceholder = nameInput.placeholder;
-        nameInput.value = 'AI 분석 중... 🤖';
+        nameInput.value = `AI 분석 중 (${files.length}장)... 🤖`;
         nameInput.classList.add('ai-loading-pulse');
         nameInput.disabled = true;
 
         try {
-            const base64Image = await compressImage(file, 800, 800);
+            const base64Images = await Promise.all(files.map(file => compressImage(file, 800, 800)));
             const todayStr = new Date().toISOString().split('T')[0];
 
-            const promptText = `Analyze this food product image and identify its details. Today is ${todayStr}.
+            const promptText = `Analyze these food product images (${base64Images.length} images provided) and identify the product details. Today is ${todayStr}.
 Return the details strictly as a JSON object with the following fields:
 - name: Product name in Korean (e.g., '서울우유 1L', '코카콜라 355ml', '단호박'). Be specific yet concise.
 - category: Select one from: '채소/과일', '육류/해산물', '유제품', '가공식품', '음료', '기타'.
 - storageType: Select one from: '냉장', '냉동', '실온'.
-- expiryDate: Recommended expiration date (YYYY-MM-DD). If an expiration date or manufacturing date is visible in the image, parse it and calculate/use the expiration date. Otherwise, estimate a typical shelf life from today (${todayStr}) for this category of product.
+- expiryDate: Recommended expiration date (YYYY-MM-DD). If an expiration date or manufacturing date is visible in any of the images, parse it and calculate/use the expiration date. Otherwise, default to today's date (${todayStr}).
 
 Do not include any markdown styling like \`\`\`json or \`\`\`, just return the raw JSON string.`;
+
+            const parts = [{ text: promptText }];
+            base64Images.forEach(base64Image => {
+                parts.push({
+                    inlineData: {
+                        mimeType: 'image/jpeg',
+                        data: base64Image
+                    }
+                });
+            });
 
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
@@ -1461,17 +1570,7 @@ Do not include any markdown styling like \`\`\`json or \`\`\`, just return the r
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            {
-                                inlineData: {
-                                    mimeType: 'image/jpeg',
-                                    data: base64Image
-                                }
-                            }
-                        ]
-                    }],
+                    contents: [{ parts: parts }],
                     generationConfig: {
                         responseMimeType: 'application/json'
                     }
@@ -1500,9 +1599,8 @@ Do not include any markdown styling like \`\`\`json or \`\`\`, just return the r
                 nameInput.value = product.name;
                 categorySelect.value = product.category || '기타';
                 storageSelect.value = product.storageType || '냉장';
-                if (product.expiryDate) {
-                    expiryInput.value = product.expiryDate;
-                }
+                updateSelectColor(storageSelect);
+                expiryInput.value = product.expiryDate || new Date().toISOString().split('T')[0];
             } else {
                 throw new Error('AI 응답 데이터 분석 불가');
             }
@@ -1660,6 +1758,77 @@ Respond ONLY with a JSON array of objects containing these fields (title, desc, 
 
     document.getElementById('close-recipe-detail-modal').onclick = () => {
         document.getElementById('recipe-detail-modal').style.display = 'none';
+    };
+
+    // 보관 팁 조회 및 모달 표시
+    async function showStorageTip(foodName, category) {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            alert('보관 꿀팁을 조회하려면 우측 상단 설정(⚙️)에서 Gemini API 키를 먼저 등록해주세요.');
+            document.getElementById('settings-modal').style.display = 'flex';
+            return;
+        }
+
+        const tipModal = document.getElementById('tip-modal');
+        const tipTitle = document.getElementById('tip-modal-title');
+        const tipContent = document.getElementById('tip-modal-content');
+
+        tipTitle.innerText = `💡 '${foodName}' 보관 꿀팁`;
+        tipContent.innerHTML = `
+            <div style="text-align: center; padding: 30px 10px; color: var(--text-muted);">
+                <div class="ai-loading-pulse" style="font-size: 1.05rem; font-weight: 600;">AI가 보관 방법을 조사하고 있습니다... 🤖</div>
+            </div>
+        `;
+        tipModal.style.display = 'flex';
+
+        try {
+            const prompt = `Please explain how to store '${foodName}' (category: ${category}) to keep it fresh for as long as possible.
+Provide the response in Korean, structured as beautiful HTML (using styled divs, badges, and emojis). Do not include any markdown fences (like \`\`\`html) or outer body/html tags. Just return raw inside HTML.
+Structure the content to include:
+1. Recommended storage location badge (e.g. 냉장/냉동/실온 with appropriate color theme).
+2. Key detailed storage steps.
+3. Things to avoid / precautions.
+4. Estimated storage duration.`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error?.message || 'API request failed');
+            }
+
+            const data = await response.json();
+            const textResponse = data.candidates[0].content.parts[0].text;
+            
+            let htmlContent = textResponse.trim();
+            if (htmlContent.startsWith('```html')) {
+                htmlContent = htmlContent.replace(/^```html/, '').replace(/```$/, '').trim();
+            } else if (htmlContent.startsWith('```')) {
+                htmlContent = htmlContent.replace(/^```/, '').replace(/```$/, '').trim();
+            }
+
+            tipContent.innerHTML = htmlContent;
+        } catch (error) {
+            console.error('보관 팁 오류:', error);
+            tipContent.innerHTML = `
+                <div style="color: var(--danger-color); padding: 15px; font-weight: 700; text-align: center;">
+                    보관 팁을 불러오는데 실패했습니다.<br>
+                    <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">${error.message}</span>
+                </div>
+            `;
+        }
+    }
+
+    document.getElementById('close-tip-modal').onclick = () => {
+        document.getElementById('tip-modal').style.display = 'none';
     };
 </script>
 </body>
